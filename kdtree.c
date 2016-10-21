@@ -1,7 +1,8 @@
-#include"kdtree.h"
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include"kdtree.h"
+#include"vec3.h"
 
 typedef int(*fcmp)(const void*,const void*);
 
@@ -20,6 +21,8 @@ static struct kdtree*kdtree_new_aux(tri*ns,unsigned d,unsigned i,unsigned j){
   fcmp cmp[3]={cx,cy,cz};
   qsort(ns+i,j-i,sizeof(tri),cmp[d%3]);
   struct kdtree*t=kdtree_leaf(ns[(i+j-1)/2],d);
+  t->bounds.from=ns[i].v[d%3];
+  t->bounds.to=ns[j].v[d%3];
   t->left=kdtree_new_aux(ns,d+1,i,(i+j-1)/2);
   t->right=kdtree_new_aux(ns,d+1,(i+j-1)/2+1,j);
   return t;
@@ -75,8 +78,51 @@ struct kdtree*kdtree_nearest(struct kdtree*t,tri n){
   else if(0>ondepth(n,t->node,t->depth)) return kdtree_nearest(t->left,n);
   return t;
 }
+static inline float max(float a,float b){ return a>b?a:b; }
+static inline float min(float a,float b){ return a<b?a:b; }
+static int box_hit(struct box b,struct ray r){
+  vec3 v=vec3_div(vec3_sub(b.from,r.p0),r.dir);
+  vec3 w=vec3_div(vec3_sub(b.to,r.p0),r.dir);
+  return max(max(v.x,v.y),v.z)<=min(min(w.x,w.y),w.z);
+}
+static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
+  const float SMALL_NUM=0.00000001;
+  vec3 u,v,n;
+  vec3 w0,w;
+  float rt,a,b;
+  u=vec3_sub(tr.q,tr.p);
+  v=vec3_sub(tr.r,tr.p);
+  n=vec3_cross(u,v);
+  if(n.x=0&&n.y==0&&n.z==0) return -1;
+  w0=vec3_sub(r.p0,tr.p);
+  a=-vec3_dot(n,w0);
+  b=vec3_dot(n,r.dir);
+  if(fabs(b)<SMALL_NUM) return 0==a?2:0;
+  rt=a/b;
+  if(rt<0.0) return 0;
+  *i=vec3_add(r.p0,vec3_mul(rt,r.dir));
+  float uu,uv,vv,wu,wv,D;
+  uu=vec3_dot(u,u);
+  uv=vec3_dot(u,v);
+  vv=vec3_dot(v,v);
+  w=vec3_sub(*i,tr.p);
+  wu=vec3_dot(w,u);
+  wv=vec3_dot(w,v);
+  D=uv*uv-uu*vv;
+  float s,t;
+  s=(uv*wv-vv*wu)/D;
+  if(s<0.0||s>1.0) return 0;
+  t=(uv*wu-uu*wv)/D;
+  if(t<0.0||(s+t)>1.0) return 0;
+  return 1;
+}
+int kdtree_hit(struct kdtree*t,struct ray r,vec3*v){
+  if(NULL==t||!box_hit(t->bounds,r)) return 0;
+  else if(NULL==t->left&&NULL==t->right) return tri_hit(t->node,r,v);
+  else return kdtree_hit(t->left,r,v)||kdtree_hit(t->right,r,v);
+} 
 unsigned kdtree_count(struct kdtree*t){
-  return NULL==t ? 0 : 1+kdtree_count(t->left)+kdtree_count(t->right);
+  return NULL==t?0:1+kdtree_count(t->left)+kdtree_count(t->right);
 }
 void kdtree_destroy(struct kdtree*t){
   if(NULL==t) return;
