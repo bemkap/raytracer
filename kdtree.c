@@ -22,7 +22,7 @@ static struct kdtree*kdtree_new_aux(tri*ns,unsigned d,unsigned i,unsigned j){
   qsort(ns+i,j-i,sizeof(tri),cmp[d%3]);
   struct kdtree*t=kdtree_leaf(ns[(i+j-1)/2],d);
   t->bounds.from=ns[i].v[d%3];
-  t->bounds.to=ns[j].v[d%3];
+  t->bounds.to=ns[j-1].v[d%3];
   t->left=kdtree_new_aux(ns,d+1,i,(i+j-1)/2);
   t->right=kdtree_new_aux(ns,d+1,(i+j-1)/2+1,j);
   return t;
@@ -80,12 +80,20 @@ struct kdtree*kdtree_nearest(struct kdtree*t,tri n){
 }
 static inline float max(float a,float b){ return a>b?a:b; }
 static inline float min(float a,float b){ return a<b?a:b; }
+static inline int signum(float x){ return (x>0)-(x<0); }
 static int box_hit(struct box b,struct ray r){
-  vec3 v=vec3_div(vec3_sub(b.from,r.p0),r.dir);
-  vec3 w=vec3_div(vec3_sub(b.to,r.p0),r.dir);
-  return max(max(v.x,v.y),v.z)<=min(min(w.x,w.y),w.z);
+  printf("box hit:\n\tr.p=(%f,%f,%f)\tr.dir=(%f,%f,%f)\n\tb.from=(%f,%f,%f)\tb.to=(%f,%f,%f)\n",
+	 r.p0.x,r.p0.y,r.p0.z,r.dir.x,r.dir.y,r.dir.z,b.from.x,b.from.y,b.from.z,b.to.x,b.to.y,b.to.z);
+  vec3 v=vec3_sub(b.from,r.p0);
+  vec3 w=vec3_sub(b.to,r.p0);
+  float x=max(max(signum(r.dir.x)*v.x,signum(r.dir.y)*v.y),signum(r.dir.z)*v.z);
+  float y=max(max(signum(r.dir.x)*w.x,signum(r.dir.y)*w.y),signum(r.dir.z)*w.z);
+  return x<=y;
 }
 static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
+  if(tr.p.x==-1.0)
+    printf("tri hit:\n\tr.p=(%f,%f,%f)\tr.dir=(%f,%f,%f)\n\ttri.p=(%f,%f,%f)\ttri.q=(%f,%f,%f)\ttri.r=(%f,%f,%f)\n",
+	   r.p0.x,r.p0.y,r.p0.z,r.dir.x,r.dir.y,r.dir.z,tr.p.x,tr.p.y,tr.p.z,tr.q.x,tr.q.y,tr.q.z,tr.r.x,tr.r.y,tr.r.z);
   const float SMALL_NUM=0.00000001;
   vec3 u,v,n;
   vec3 w0,w;
@@ -117,7 +125,7 @@ static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
   return 1;
 }
 int kdtree_hit(struct kdtree*t,struct ray r,vec3*v){
-  if(NULL==t||!box_hit(t->bounds,r)) return 0;
+  if(NULL==t) return 0;//||!box_hit(t->bounds,r)) return 0;
   else if(NULL==t->left&&NULL==t->right) return tri_hit(t->node,r,v);
   else return kdtree_hit(t->left,r,v)||kdtree_hit(t->right,r,v);
 } 
