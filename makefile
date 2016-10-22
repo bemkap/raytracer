@@ -1,4 +1,5 @@
-CFLAGS= -std=c11 -ggdb
+CFLAGS= -std=c11 -ggdb `pkg-config --cflags sdl2`
+LDLIBS= `pkg-config --libs sdl2`
 
 main: main.o kdtree.o parser.o vec3.o
 main.o: main.c

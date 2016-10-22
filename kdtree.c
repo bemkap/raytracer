@@ -82,8 +82,6 @@ static inline float max(float a,float b){ return a>b?a:b; }
 static inline float min(float a,float b){ return a<b?a:b; }
 static inline int signum(float x){ return (x>0)-(x<0); }
 static int box_hit(struct box b,struct ray r){
-  printf("box hit:\n\tr.p=(%f,%f,%f)\tr.dir=(%f,%f,%f)\n\tb.from=(%f,%f,%f)\tb.to=(%f,%f,%f)\n",
-	 r.p0.x,r.p0.y,r.p0.z,r.dir.x,r.dir.y,r.dir.z,b.from.x,b.from.y,b.from.z,b.to.x,b.to.y,b.to.z);
   vec3 v=vec3_sub(b.from,r.p0);
   vec3 w=vec3_sub(b.to,r.p0);
   float x=max(max(signum(r.dir.x)*v.x,signum(r.dir.y)*v.y),signum(r.dir.z)*v.z);
@@ -91,9 +89,6 @@ static int box_hit(struct box b,struct ray r){
   return x<=y;
 }
 static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
-  if(tr.p.x==-1.0)
-    printf("tri hit:\n\tr.p=(%f,%f,%f)\tr.dir=(%f,%f,%f)\n\ttri.p=(%f,%f,%f)\ttri.q=(%f,%f,%f)\ttri.r=(%f,%f,%f)\n",
-	   r.p0.x,r.p0.y,r.p0.z,r.dir.x,r.dir.y,r.dir.z,tr.p.x,tr.p.y,tr.p.z,tr.q.x,tr.q.y,tr.q.z,tr.r.x,tr.r.y,tr.r.z);
   const float SMALL_NUM=0.00000001;
   vec3 u,v,n;
   vec3 w0,w;
@@ -126,7 +121,7 @@ static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
 }
 int kdtree_hit(struct kdtree*t,struct ray r,vec3*v){
   if(NULL==t) return 0;//||!box_hit(t->bounds,r)) return 0;
-  else if(NULL==t->left&&NULL==t->right) return tri_hit(t->node,r,v);
+  if(NULL==t->left&&NULL==t->right) return tri_hit(t->node,r,v);
   else return kdtree_hit(t->left,r,v)||kdtree_hit(t->right,r,v);
 } 
 unsigned kdtree_count(struct kdtree*t){
