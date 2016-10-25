@@ -8,3 +8,4 @@ vec3 vec3_mul(float,vec3);
 vec3 vec3_div(vec3,vec3);
 vec3 vec3_cross(vec3,vec3);
 float vec3_dot(vec3,vec3);
+void vec3_print(vec3);

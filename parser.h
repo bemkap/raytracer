@@ -1,13 +1,16 @@
 #pragma once
 
-#include"kdtree.h"
-
 enum { INITIAL_SIZE = 1024 };
 
 struct container {
   void**ar;
-  unsigned av,sz;
+  unsigned long av,sz;
 };
+
+typedef union {
+  int a[9];
+  struct { int v0,t0,n0, v1,t1,n1, v2,t2,n2; };
+} face;
 
 struct obj_desc {
   struct container*vs,*vts,*ns,*fs;

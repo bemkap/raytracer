@@ -3,32 +3,39 @@
 #include<stdlib.h>
 #include"kdtree.h"
 #include"vec3.h"
+#include"parser.h"
 
-typedef int(*fcmp)(const void*,const void*);
-
-#define FCMP(f,c)					     \
-  int f(const void*a,const void*b){			     \
-    const tri*ta=a,*tb=b;				     \
-    float mpa=(ta->v[0].c+ta->v[1].c+ta->v[2].c)/3;	     \
-    float mpb=(tb->v[0].c+tb->v[1].c+tb->v[2].c)/3;	     \
-    return mpa-mpb;					     \
+#define FCMP(f,c)                                                       \
+  gint f(const void*a,const void*b,void*ex){                            \
+    const face*fa=*(face**)a,*fb=*(face**)b;                            \
+    vec3**vs=ex;                                                        \
+    float mpa=(vs[fa->v0]->c+vs[fa->v1]->c+vs[fa->v2]->c)/3;            \
+    float mpb=(vs[fb->v0]->c+vs[fb->v1]->c+vs[fb->v2]->c)/3;            \
+    return mpb-mpa;                                                     \
   }
-
 FCMP(cx,x); FCMP(cy,y); FCMP(cz,z);
 
-static struct kdtree*kdtree_new_aux(tri*ns,unsigned d,unsigned i,unsigned j){
+#define F2V(o,i,f) (*(vec3*)(o->vs->ar[((face*)o->fs->ar[(i)])->f]))
+static struct kdtree*kdtree_new_aux(struct obj_desc*o,unsigned d,long i,long j){
   if(i>=j) return NULL;
-  fcmp cmp[3]={cx,cy,cz};
-  qsort(ns+i,j-i,sizeof(tri),cmp[d%3]);
-  struct kdtree*t=kdtree_leaf(ns[(i+j-1)/2],d);
-  t->bounds.from=ns[i].v[d%3];
-  t->bounds.to=ns[j-1].v[d%3];
-  t->left=kdtree_new_aux(ns,d+1,i,(i+j-1)/2);
-  t->right=kdtree_new_aux(ns,d+1,(i+j-1)/2+1,j);
+  GCompareDataFunc cmp[3]={cx,cy,cz};
+  vec3 from,to;
+  for(unsigned n=0; n<3; ++n){
+    unsigned k=d+2-n;
+    g_qsort_with_data(o->fs->ar+i,j-i+1,sizeof(face*),cmp[k%3],o->vs->ar);
+    from.p[k%3]=F2V(o,i,a[3*(k%3)]).p[k%3];
+    to.p[k%3]=F2V(o,j,a[3*(k%3)]).p[k%3];
+  }
+  tri f; f.p=F2V(o,(i+j)/2,v0); f.q=F2V(o,(i+j)/2,v1); f.r=F2V(o,(i+j)/2,v2);
+  struct kdtree*t=kdtree_leaf(f,d);
+  t->bounds.from=from;
+  t->bounds.to=to;
+  t->left=kdtree_new_aux(o,d+1,i,(i+j)/2-1);
+  t->right=kdtree_new_aux(o,d+1,(i+j)/2+1,j);
   return t;
 }
-struct kdtree*kdtree_new(tri*ns,unsigned sz){
-  return kdtree_new_aux(ns,0,0,sz);
+struct kdtree*kdtree_new(struct obj_desc*o,unsigned sz){
+  return kdtree_new_aux(o,0,0,sz-1);
 }
 struct kdtree*kdtree_leaf(tri n,unsigned d){
   struct kdtree*t=malloc(sizeof(struct kdtree));
@@ -48,29 +55,6 @@ struct kdtree*kdtree_add(struct kdtree*t,tri n){
   if(NULL!=t->left) t->left->depth=t->depth+1;
   return t;
 }
-//ns tiene que tener suficiente espacio
-static unsigned kdtree_collect(tri*ns,struct kdtree*t){
-  if(NULL==t) return 0;
-  *ns=t->node;
-  unsigned i=kdtree_collect(ns+1,t->left);
-  return i+kdtree_collect(ns+i,t->right);
-}  
-struct kdtree*kdtree_remove(struct kdtree*t,tri n){
-  if(NULL==t) return NULL;
-  if(0<ondepth(n,t->node,t->depth)) t->right=kdtree_remove(t->right,n);
-  else if(0>ondepth(n,t->node,t->depth)) t->left=kdtree_remove(t->left,n);
-  else{
-    unsigned sz=kdtree_count(t);
-    tri*ns=malloc(sz*sizeof(tri));
-    kdtree_collect(ns,t);
-    for(int i=0; i<3; ++i) for(int j=0; j<3; ++j) t->node.v[i].p[j]=INFINITY;
-    struct kdtree*s=kdtree_new_aux(ns,t->depth,0,sz);
-    kdtree_destroy(t);
-    free(ns);
-    return s;
-  }
-  return t;
-}
 struct kdtree*kdtree_nearest(struct kdtree*t,tri n){
   if(NULL==t) return NULL;
   if(t->node.p.x==INFINITY){kdtree_destroy(t); return NULL;}
@@ -81,14 +65,29 @@ struct kdtree*kdtree_nearest(struct kdtree*t,tri n){
 static inline float max(float a,float b){ return a>b?a:b; }
 static inline float min(float a,float b){ return a<b?a:b; }
 static inline int signum(float x){ return (x>0)-(x<0); }
-static int box_hit(struct box b,struct ray r){
-  vec3 v=vec3_sub(b.from,r.p0);
-  vec3 w=vec3_sub(b.to,r.p0);
-  float x=max(max(signum(r.dir.x)*v.x,signum(r.dir.y)*v.y),signum(r.dir.z)*v.z);
-  float y=max(max(signum(r.dir.x)*w.x,signum(r.dir.y)*w.y),signum(r.dir.z)*w.z);
-  return x<=y;
+int box_hit(struct box b,struct ray r){
+  float tmin=-INFINITY,tmax=INFINITY;
+  if(r.dir.x!=0){
+    float tx1=(b.from.x-r.p0.x)/r.dir.x;
+    float tx2=(b.to.x-r.p0.x)/r.dir.x;
+    tmin=max(tmin,min(tx1,tx2));
+    tmax=min(tmax,max(tx1,tx2));
+  }
+  if(r.dir.y!=0){
+    float ty1=(b.from.y-r.p0.y)/r.dir.y;
+    float ty2=(b.to.y-r.p0.y)/r.dir.y;
+    tmin=max(tmin,min(ty1,ty2));
+    tmax=min(tmax,max(ty1,ty2));
+  }
+  if(r.dir.z!=0){
+    float tz1=(b.from.z-r.p0.z)/r.dir.z;
+    float tz2=(b.to.z-r.p0.z)/r.dir.z;
+    tmin=max(tmin,min(tz1,tz2));
+    tmax=min(tmax,max(tz1,tz2));
+  }    
+  return tmax>=tmin;
 }
-static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
+static int tri_hit(tri tr,struct ray r,vec3*i){
   const float SMALL_NUM=0.00000001;
   vec3 u,v,n;
   vec3 w0,w;
@@ -96,7 +95,7 @@ static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
   u=vec3_sub(tr.q,tr.p);
   v=vec3_sub(tr.r,tr.p);
   n=vec3_cross(u,v);
-  if(n.x=0&&n.y==0&&n.z==0) return -1;
+  if((n.x=0)&&(n.y==0)&&(n.z==0)) return -1;
   w0=vec3_sub(r.p0,tr.p);
   a=-vec3_dot(n,w0);
   b=vec3_dot(n,r.dir);
@@ -120,8 +119,8 @@ static int tri_hit(tri tr,struct ray r,vec3*i){//the hell?
   return 1;
 }
 int kdtree_hit(struct kdtree*t,struct ray r,vec3*v){
-  if(NULL==t) return 0;//||!box_hit(t->bounds,r)) return 0;
-  if(NULL==t->left&&NULL==t->right) return tri_hit(t->node,r,v);
+  if(NULL==t||!box_hit(t->bounds,r)) return 0;
+  else if(NULL==t->left&&NULL==t->right) return tri_hit(t->node,r,v);
   else return kdtree_hit(t->left,r,v)||kdtree_hit(t->right,r,v);
 } 
 unsigned kdtree_count(struct kdtree*t){

@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<string.h>
 #include"parser.h"
+#include"vec3.h"
 
 struct container*container_new(unsigned sz){
   struct container*c=malloc(sizeof(struct container));
@@ -11,8 +12,8 @@ struct container*container_new(unsigned sz){
   return c;
 }
 unsigned container_push(struct container*c,void*n){
-  c->ar[c->av]=n;
-  if(++c->av>=c->sz) c->ar=realloc(c->ar,c->sz*2);
+  if(c->av>=c->sz){c->ar=realloc(c->ar,c->sz*2*sizeof(void*)); c->sz*=2;}  
+  c->ar[c->av++]=n;
   return c->av-1;
 }
 void container_destroy(struct container*c){
@@ -23,17 +24,17 @@ void container_destroy(struct container*c){
 struct obj_desc*obj_parse(const char*fn){
   char buffer[128],cmd;
   FILE*in=fopen(fn,"r");
-  float f[3]; int i[9];
+  float f[3]; int a[9];
   struct obj_desc*obj=malloc(sizeof(struct obj_desc));
   obj->vs=container_new(INITIAL_SIZE);
   obj->vts=container_new(INITIAL_SIZE);
   obj->ns=container_new(INITIAL_SIZE);
   obj->fs=container_new(INITIAL_SIZE);
   while(fgets(buffer,sizeof(buffer),in)){
-    if(sscanf(buffer,"f %d/%d/%d %d/%d/%d %d/%d/%d",i+0,i+1,i+2, i+3,i+4,i+5, i+6,i+7,i+8)){
-      int*v=malloc(9*sizeof(int));
-      v[0]=i[0]; v[1]=i[1]; v[2]=i[2];  v[3]=i[3]; v[4]=i[4]; v[5]=i[5];  v[6]=i[6]; v[7]=i[7]; v[8]=i[8];
-      container_push(obj->fs,v);
+    if(sscanf(buffer,"f %d/%d/%d %d/%d/%d %d/%d/%d",a+0,a+1,a+2, a+3,a+4,a+5, a+6,a+7,a+8)){
+      face*f=malloc(sizeof(face));
+      for(int i=0; i<9; ++i) f->a[i]=a[i];
+      container_push(obj->fs,f);
     }else if(sscanf(buffer,"vt %f %f",f,f+1)){
       vec3*v=malloc(sizeof(vec3));
       v->x=f[0]; v->y=f[1];
