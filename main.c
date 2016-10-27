@@ -14,7 +14,7 @@ int main(int argc,char*argv[]){
   ray r; vec3 v;
   r.p=(vec3){{19.4733,3.01545,16.592}};
   r.d=(vec3){{-0.754998,0.00343363,-0.655718}};
-  kdtree_hit(o,t,r,&v); vec3_print(v);
+  if(kdtree_hit(o,t,r,&v)) vec3_print(v);
   kdtree_destroy(t);
   obj_destroy(o);
 }

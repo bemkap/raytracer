@@ -27,11 +27,11 @@ FCMP(cy,y)
 FCMP(cz,z)
 static kdtree*kdtree_new_aux(obj_desc*o,box b,unsigned d,long i,long j){
   kdtree*t=kdtree_leaf(i,j,d);
+  t->bounds=b;
   if(j-i>25){
     GCompareDataFunc cmp[3]={cx,cy,cz};
     box bl,br; bl=br=b;
     g_qsort_with_data(o->fs->pdata+i,j-i+1,sizeof(void*),cmp[d%3],o->vs);
-    t->bounds=b;
     bl.t.p[d%3]=ivertex(o,(i+j)/2,a[3*(d%3)])->p[d%3];
     t->left=kdtree_new_aux(o,bl,d+1,i,(i+j)/2);
     br.f.p[d%3]=ivertex(o,(i+j)/2,a[3*(d%3)])->p[d%3];
@@ -70,13 +70,13 @@ static int tri_hit(tri tr,ray r,vec3*i){
   u=vec3_sub(tr.q,tr.p);
   v=vec3_sub(tr.r,tr.p);
   n=vec3_cross(u,v);
-  if((n.x=0)&&(n.y==0)&&(n.z==0)) return -1;
+  if((0==n.x)&&(0==n.y)&&(0==n.z)) return 0;
   w0=vec3_sub(r.p,tr.p);
   a=-vec3_dot(n,w0);
   b=vec3_dot(n,r.d);
-  if(fabs(b)<0.00000001) return 0==a?2:0;
+  if(fabs(b)<0.000001) return 0;
   rt=a/b;
-  if(rt<0.0) return 0;
+  if(rt<0) return 0;
   *i=vec3_add(r.p,vec3_mul(rt,r.d));
   float uu,uv,vv,wu,wv,D;
   uu=vec3_dot(u,u);
@@ -94,13 +94,16 @@ static int tri_hit(tri tr,ray r,vec3*i){
   return 1;
 }
 int kdtree_hit(obj_desc*o,kdtree*t,ray r,vec3*v){
-  if(NULL==t) return 0;//||!box_hit(t->bounds,r)) return 0;
-  else if(NULL==t->left&&NULL==t->right){
+  vec3_print(r.p); vec3_print(r.d); vec3_print(t->bounds.f); vec3_print(t->bounds.t);
+  if(NULL==t) return 0;
+  else if((NULL==t->left)&&(NULL==t->right)){
+    if(!box_hit(t->bounds,r)){puts("ultimo.no pego"); return 0;}
+    puts("ultimo.pego");
     for(long i=t->i; i<t->j; ++i){
       tri tr=itriagle(o,i);
-      if(tri_hit(tr,r,v)) return 1;
+      if(tri_hit(tr,r,v)){puts("ultimo.pego triangulo"); return 1;}
     }; return 0;
-  }else return kdtree_hit(o,t->left,r,v)||kdtree_hit(o,t->right,r,v);
+  }else{puts("quedan"); return kdtree_hit(o,t->left,r,v)||kdtree_hit(o,t->right,r,v);}
 } 
 void kdtree_destroy(kdtree*t){
   if(NULL==t) return;
