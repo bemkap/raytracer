@@ -6,7 +6,8 @@
 #include"parser.h"
 
 #define iface(o,i) ((face*)g_ptr_array_index((o)->fs,(i)))
-#define ivertex(o,i,f) ((vec3*)g_ptr_array_index((o)->vs,iface(o,i)->f))
+#define ivertex(o,i,f) ((vec3*)g_ptr_array_index((o)->vs,iface(o,i)->f-1))
+//#define inormal(o,i) ((vec3*)p_ptr_array_index((o)->ns,iface(o,i)
 #define itriagle(o,i) (tri){{*ivertex(o,i,v0),*ivertex(o,i,v1),*ivertex(o,i,v2)}}
 #define FCMP(f,c)                                                       \
   gint f(const void*a,const void*b,void*ex){                            \
@@ -94,16 +95,14 @@ static int tri_hit(tri tr,ray r,vec3*i){
   return 1;
 }
 int kdtree_hit(obj_desc*o,kdtree*t,ray r,vec3*v){
-  vec3_print(r.p); vec3_print(r.d); vec3_print(t->bounds.f); vec3_print(t->bounds.t);
   if(NULL==t) return 0;
   else if((NULL==t->left)&&(NULL==t->right)){
-    if(!box_hit(t->bounds,r)){puts("ultimo.no pego"); return 0;}
-    puts("ultimo.pego");
+    if(!box_hit(t->bounds,r)) return 0;
     for(long i=t->i; i<t->j; ++i){
       tri tr=itriagle(o,i);
-      if(tri_hit(tr,r,v)){puts("ultimo.pego triangulo"); return 1;}
+      if(tri_hit(tr,r,v)) return 1;
     }; return 0;
-  }else{puts("quedan"); return kdtree_hit(o,t->left,r,v)||kdtree_hit(o,t->right,r,v);}
+  }else return kdtree_hit(o,t->left,r,v)||kdtree_hit(o,t->right,r,v);
 } 
 void kdtree_destroy(kdtree*t){
   if(NULL==t) return;
