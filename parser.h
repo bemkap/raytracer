@@ -1,6 +1,7 @@
 #pragma once
 
 #include<glib.h>
+#include"vec3.h"
 
 enum { INITIAL_SIZE = 1024 };
 
@@ -15,3 +16,9 @@ typedef struct {
 
 obj_desc*obj_parse(const char*);
 void     obj_destroy(obj_desc*);
+
+face*iface(obj_desc*,int);
+vec3*ivertex(obj_desc*,int,int);
+vec3*inormal(obj_desc*,int,int);
+vec3*itexture(obj_desc*,int,int);
+tri  itriangle(obj_desc*,int);
