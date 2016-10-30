@@ -5,23 +5,24 @@
 #include"vec3.h"
 #include"parser.h"
 
-#define FCMP(f,c)                                                       \
-  gint f(const void*a,const void*b,void*ex){                            \
-    const face*fa=*(face**)a,*fb=*(face**)b;                            \
-    GPtrArray*vs=ex;                                                    \
-    float mpa=(                                                         \
-               ((vec3*)g_ptr_array_index(vs,fa->v0-1))->c+              \
-               ((vec3*)g_ptr_array_index(vs,fa->v1-1))->c+              \
-               ((vec3*)g_ptr_array_index(vs,fa->v2-1))->c)/3;           \
-    float mpb=(                                                         \
-               ((vec3*)g_ptr_array_index(vs,fb->v0-1))->c+              \
-               ((vec3*)g_ptr_array_index(vs,fb->v1-1))->c+              \
-               ((vec3*)g_ptr_array_index(vs,fb->v2-1))->c)/3;           \
-    return mpb-mpa;                                                     \
-  }
-FCMP(cx,x)
-FCMP(cy,y)
-FCMP(cz,z)
+static inline float max(float a,float b){return a>b?a:b;}
+static inline float min(float a,float b){return a<b?a:b;}
+gint fcmp(const void*a,const void*b,void*ex,unsigned d){
+  const face*fa=*(face**)a,*fb=*(face**)b;
+  GPtrArray*vs=ex;
+  float mpa=
+    min(((vec3*)g_ptr_array_index(vs,fa->v0-1))->p[d%3],
+	min(((vec3*)g_ptr_array_index(vs,fa->v1-1))->p[d%3],
+	    ((vec3*)g_ptr_array_index(vs,fa->v2-1))->p[d%3]));
+  float mpb=
+    min(((vec3*)g_ptr_array_index(vs,fb->v0-1))->p[d%3],
+	min(((vec3*)g_ptr_array_index(vs,fb->v1-1))->p[d%3],
+	    ((vec3*)g_ptr_array_index(vs,fb->v2-1))->p[d%3]));
+  return mpa-mpb;
+}
+gint cx(const void*a,const void*b,void*ex){return fcmp(a,b,ex,0);}
+gint cy(const void*a,const void*b,void*ex){return fcmp(a,b,ex,1);}
+gint cz(const void*a,const void*b,void*ex){return fcmp(a,b,ex,2);}
 static kdtree*kdtree_new_aux(obj_desc*o,box b,unsigned d,long i,long j){
   kdtree*t=kdtree_leaf(i,j,d);
   t->bounds=b;
@@ -46,8 +47,6 @@ kdtree*kdtree_leaf(long i,long j,unsigned d){
   t->left=t->right=NULL;
   return t;
 }
-static inline float max(float a,float b){ return a>b?a:b; }
-static inline float min(float a,float b){ return a<b?a:b; }
 static int box_hit(box b,ray r){
   float tmin=-INFINITY,tmax=INFINITY;
   for(int i=0; i<3; ++i){
