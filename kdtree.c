@@ -50,12 +50,14 @@ kdtree*kdtree_leaf(long i,long j,unsigned d){
 static int box_hit(box b,ray r){
   float tmin=-INFINITY,tmax=INFINITY;
   for(int i=0; i<3; ++i){
-    if(r.d.p[i]!=0){
+    if(r.d.p[i]==0&&(r.p.p[i]<b.f.p[i]||r.p.p[i]>b.t.p[i])) return 0;
+    else if(r.d.p[i]!=0){
       float t1=(b.f.p[i]-r.p.p[i])/r.d.p[i];
       float t2=(b.t.p[i]-r.p.p[i])/r.d.p[i];
       tmin=max(tmin,min(t1,t2));
       tmax=min(tmax,max(t1,t2));
-    }
+      if(tmin>tmax||tmax<0) return 0;
+    }      
   }
   return tmax>=tmin;
 }
@@ -86,9 +88,8 @@ static int tri_hit(tri tr,ray r,vec3*i,vec3*c){
   return 1;
 }
 int kdtree_hit(obj_desc*o,kdtree*t,ray r,vec3*v,vec3*n){
-  if(NULL==t) return 0;
+  if(NULL==t||!box_hit(t->bounds,r)) return 0;
   else if((NULL==t->left)&&(NULL==t->right)){
-    if(!box_hit(t->bounds,r)) return 0;
     for(long i=t->i; i<t->j; ++i){
       tri tr=itriangle(o,i); vec3 uv;
       if(tri_hit(tr,r,v,&uv)){
