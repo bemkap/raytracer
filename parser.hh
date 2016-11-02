@@ -11,7 +11,7 @@ struct face {
     long a[9];
     struct { long v0,t0,n0, v1,t1,n1, v2,t2,n2; };
   };
-  long operator[](int i){return a[i%9];}
+  long operator[](int);
 };
 
 struct mtl {
@@ -27,4 +27,5 @@ struct obj_desc {
   vector<face> fs;
   vector<mtl> mtls;
   obj_desc(string&);
+  vec3 f2v(long,int);
 };

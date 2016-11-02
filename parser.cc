@@ -5,11 +5,12 @@
 #include"parser.hh"
 using namespace std;
 
+long face::operator[](int i){return a[i%9];}
 mtl::mtl(string&fn){
-  string line; char str[128];
+  string line; char str[128]={0};
   ifstream in(fn);
   while(getline(in,line)){
-    if(sscanf(line.c_str(),"newmtl %s",str)) name=string(str);
+    if(sscanf(line.c_str(),"newmtl %s",str)) name=string(str,strlen(str));
     else if(sscanf(line.c_str(),"Ns %f",&ns));
     else if(sscanf(line.c_str(),"Ka %f %f %f",&ka.x,&ka.y,&ka.z));
     else if(sscanf(line.c_str(),"Kd %f %f %f",&kd.x,&kd.y,&kd.z));
@@ -24,7 +25,7 @@ obj_desc::obj_desc(string&fn){
   string line; char str[128];
   ifstream in(fn); face f; vec3 v;
   while(getline(in,line)){
-    if(sscanf(line.c_str(),"f %d/%d/%d %d/%d/%d %d/%d/%d",
+    if(sscanf(line.c_str(),"f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld",
               &f.v0,&f.t0,&f.n0, &f.v1,&f.t1,&f.n1, &f.v2,&f.t2,&f.n2))
       fs.push_back(f);
     else if(sscanf(line.c_str(),"vn %f %f %f",&v.x,&v.y,&v.z))
@@ -40,3 +41,4 @@ obj_desc::obj_desc(string&fn){
   }
   in.close();
 }
+vec3 obj_desc::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}
