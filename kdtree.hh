@@ -1,12 +1,8 @@
 #pragma once
 
-#include<glm/vec3.hpp>
+#include"prim.hh"
 #include"parser.hh"
 using namespace glm;
-
-struct box { vec3 f,t; };
-struct ray { vec3 p,d; };
-struct tri { vec3 p,q,r; };
 
 struct kdtree {
   long i,j;
