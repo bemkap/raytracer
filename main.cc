@@ -10,7 +10,8 @@ int main(int argc,char*argv[]){
   vector<long> ts(o->fs.size());
   generate_n(ts.begin(),o->fs.size(),[](){ static long n=0; return n++; });
   kdtree*t=new kdtree(o,b,0,ts);
-  if(t->hit(o,r,v,n)) cout<<v.x<<" "<<v.y<<" "<<v.z<<endl;
+  t->hit(o,r,v,n);
+  cout<<v.x<<" "<<v.y<<" "<<v.z<<endl;
   /*for(int i=0; i<WIDTH; ++i)
     for(int j=0; j<HEIGHT; ++j){
     r.d=vec3(-9+0.06*i,-9+0.06*j,0)-r.p;

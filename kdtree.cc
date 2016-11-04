@@ -22,7 +22,7 @@ static plane findplane(obj_desc*o,unsigned d,vector<long>&t){
 }
 kdtree::kdtree(obj_desc*o,box b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
-  if(d<20&&t.size()>25){
+  if(d<20&&t.size()>10){
     split=findplane(o,d,t);
     box lb,rb;
     lb.t[d%3]=rb.f[d%3]=split.p[d%3];
@@ -41,27 +41,27 @@ kdtree::~kdtree(){
   if(nullptr!=right) delete right;
 }
 bool kdtree::hit(obj_desc*o,ray r,vec3&v,vec3&n){
-  float in,out;
-  if(!r.hit(bounds,in,out)) return false;
-  trav.push({this,in,out});
+  elem c; c.node=this;
+  if(!r.hit(bounds,c.in,c.out)) return false;
+  trav.push(c);
   while(!trav.empty()){
-    elem c=trav.top(); trav.pop();
+    c=trav.top(); trav.pop();
     while(c.node&&(!c.node->leafp())){
       float s=split.p[c.node->depth%3]-r.p[c.node->depth%3];
       float t=s/r.d[c.node->depth%3];
       kdtree*near,*far;
-      if(s<0){near=left; far=right;}
-      else{near=right; far=left;}
-      if(t>=out||t<0) c.node=near;
-      else if(t<=in) c.node=far;
+      if(s<0){near=c.node->left; far=c.node->right;}
+      else{near=c.node->right; far=c.node->left;}
+      if(t>=c.out||t<0) c.node=near;
+      else if(t<=c.in) c.node=far;
       else{
-	trav.push({far,t,out});
+	trav.push({far,t,c.out});
 	c.node=near;
-	out=t;
+	c.out=t;
       }
     }
     if(c.node->leafp())
-      for(auto i:ts){
+      for(auto i:c.node->ts){
 	triangle tr=o->f2t(i);
 	vec3 uv;
 	if(r.hit(tr,v,uv)){
