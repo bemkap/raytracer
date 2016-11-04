@@ -2,6 +2,7 @@
 #include<algorithm>
 #include<cmath>
 #include<glm/glm.hpp>
+#include<stack>
 #include"kdtree.hh"
 #include"parser.hh"
 #include"prim.hh"
@@ -41,13 +42,14 @@ kdtree::~kdtree(){
   if(nullptr!=right) delete right;
 }
 bool kdtree::hit(obj_desc*o,ray r,vec3&v,vec3&n){
+  stack<elem> stk;
   elem c; c.node=this;
   if(!r.hit(bounds,c.in,c.out)) return false;
-  trav.push(c);
-  while(!trav.empty()){
-    c=trav.top(); trav.pop();
+  stk.push(c);
+  while(!stk.empty()){
+    c=stk.top(); stk.pop();
     while(c.node&&(!c.node->leafp())){
-      float s=split.p[c.node->depth%3]-r.p[c.node->depth%3];
+      float s=split.p[c.node->depth%3]-r.o[c.node->depth%3];
       float t=s/r.d[c.node->depth%3];
       kdtree*near,*far;
       if(s<0){near=c.node->left; far=c.node->right;}
@@ -55,7 +57,7 @@ bool kdtree::hit(obj_desc*o,ray r,vec3&v,vec3&n){
       if(t>=c.out||t<0) c.node=near;
       else if(t<=c.in) c.node=far;
       else{
-	trav.push({far,t,c.out});
+	stk.push({far,t,c.out});
 	c.node=near;
 	c.out=t;
       }
@@ -68,7 +70,7 @@ bool kdtree::hit(obj_desc*o,ray r,vec3&v,vec3&n){
 	  vec3 n0=o->f2n(i,0);
 	  vec3 n1=o->f2n(i,1);
 	  vec3 n2=o->f2n(i,2);
-	  n=uv.z*n0+(1-uv.y-uv.z)*n1+uv.y*n2;
+	  n=(1-uv.x-uv.y)*n0+uv.x*n1+(1-uv.x)*n2;
 	  return true;
 	}
       }

@@ -14,7 +14,7 @@ int main(int argc,char*argv[]){
   cout<<v.x<<" "<<v.y<<" "<<v.z<<endl;
   /*for(int i=0; i<WIDTH; ++i)
     for(int j=0; j<HEIGHT; ++j){
-    r.d=vec3(-9+0.06*i,-9+0.06*j,0)-r.p;
+    r.d=vec3(-9+0.06*i,-9+0.06*j,0)-r.o;
     if(t->hit(o,r,v,n)){
     vec3 m={0,0,0};
     for(size_t k=0; k<sizeof(l); ++k){

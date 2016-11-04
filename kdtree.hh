@@ -1,6 +1,5 @@
 #pragma once
 
-#include<stack>
 #include<vector>
 #include"prim.hh"
 #include"parser.hh"
@@ -9,9 +8,7 @@ using namespace glm;
 
 struct elem;
 
-class kdtree {
-  stack<elem> trav;
-public:
+class kdtree {public:
   vector<long> ts;
   plane split;
   unsigned depth;

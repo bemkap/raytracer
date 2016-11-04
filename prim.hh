@@ -11,7 +11,7 @@ struct triangle { vec3 p,q,r; };
 struct light    { vec3 p,c; };
 
 struct ray {
-  vec3 p,d;
+  vec3 o,d;
   bool hit(const box&,float&,float&);
   bool hit(const plane&,vec3&);
   bool hit(const triangle&,vec3&,vec3&);
