@@ -2,7 +2,8 @@
 
 #include<glm/vec3.hpp>
 #include<vector>
-#include<iostream>
+#include<string>
+#include"prim.hh"
 using namespace glm;
 using namespace std;
 
@@ -28,4 +29,6 @@ struct obj_desc {
   vector<mtl> mtls;
   obj_desc(string&);
   vec3 f2v(long,int);
+  vec3 f2n(long,int);
+  triangle f2t(long);
 };

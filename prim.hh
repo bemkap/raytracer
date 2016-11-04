@@ -1,8 +1,8 @@
 #pragma once
 
 #define GLM_FORCE_RADIANS
-#include<glm/vec3.hpp>
 #include<glm/ext.hpp>
+#include<glm/vec3.hpp>
 using namespace glm;
 
 struct box      { vec3 f,t; };
@@ -12,7 +12,7 @@ struct light    { vec3 p,c; };
 
 struct ray {
   vec3 p,d;
-  bool hit(const box&);
+  bool hit(const box&,float&,float&);
   bool hit(const plane&,vec3&);
   bool hit(const triangle&,vec3&,vec3&);
 };

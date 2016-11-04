@@ -2,19 +2,20 @@
 #include<limits>
 #include"prim.hh"
 
-bool ray::hit(const box&b){
-  float tmin=-std::numeric_limits<float>::infinity(),tmax=std::numeric_limits<float>::infinity();
+bool ray::hit(const box&b,float&in,float&out){
+  in=-std::numeric_limits<float>::infinity();
+  out=std::numeric_limits<float>::infinity();
   for(int i=0; i<3; ++i){
     if(d[i]==0&&(p[i]<b.f[i]||p[i]>b.t[i])) return 0;
     else if(d[i]!=0){
       float t1=(b.f[i]-p[i])/d[i];
       float t2=(b.t[i]-p[i])/d[i];
-      tmin=std::max(tmin,std::min(t1,t2));
-      tmax=std::min(tmax,std::max(t1,t2));
-      if(tmin>tmax||tmax<0) return 0;
-    }      
+      in =std::max( in,std::min(t1,t2));
+      out=std::min(out,std::max(t1,t2));
+      if(in>out||out<0) return 0;
+    }
   }
-  return tmax>=tmin;
+  return out>=in;
 }
 bool ray::hit(const plane&pl,vec3&i){
   float a,b,rt;

@@ -42,3 +42,5 @@ obj_desc::obj_desc(string&fn){
   in.close();
 }
 vec3 obj_desc::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}
+vec3 obj_desc::f2n(long i,int v){return ns[fs[i][2+3*(v%3)]-1];}
+triangle obj_desc::f2t(long i){return {f2v(i,0),f2v(i,1),f2v(i,2)};}
