@@ -52,10 +52,10 @@ bool kdtree::hit(obj*o,ray r,vec3&v,vec3&n){
     while(!stk.empty()){
       c=stk.top(); stk.pop();
       while(!c.node->leafp()){
-	float t=(split.p[c.node->depth%3]-r.o[c.node->depth%3])/
-	  r.d[c.node->depth%3];
+        float s=c.node->split.p[c.node->depth%3]-r.o[c.node->depth%3];
+	float t=s/r.d[c.node->depth%3];
 	kdtree*near,*far;
-	if(t>=0){near=c.node->left; far=c.node->right;}
+	if(s>=0){near=c.node->left; far=c.node->right;}
 	else{near=c.node->right; far=c.node->left;}
 	if(t>=c.out||t<0) c.node=near;
 	else if(t<=c.in) c.node=far;

@@ -14,7 +14,6 @@ bool ray::hit(const aabb&b,float&in,float&out){
     }else if(o[i]<=b.f[i]||o[i]>=b.t[i])
       return false;
   }
-  in=std::max(in,0.0f);
   return (out>=in)&&(out>0);
 }
 bool ray::hit(const plane&pl,vec3&i){
