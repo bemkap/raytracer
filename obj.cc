@@ -1,9 +1,8 @@
-#include<iostream>
 #include<cstdio>
 #include<fstream>
-#include<string.h>
+#include<string>
 #include<glm/vec3.hpp>
-#include"parser.hh"
+#include"obj.hh"
 using namespace std;
 
 long face::operator[](int i){return a[i%9];}
@@ -22,7 +21,7 @@ mtl::mtl(string&fn){
   }
   in.close();
 }
-obj_desc::obj_desc(string&fn){
+obj::obj(string&fn){
   string line; char str[128];
   ifstream in(fn); face f; vec3 v;
   while(getline(in,line)){
@@ -46,6 +45,12 @@ obj_desc::obj_desc(string&fn){
   }
   in.close();
 }
-vec3 obj_desc::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}
-vec3 obj_desc::f2n(long i,int v){return ns[fs[i][2+3*(v%3)]-1];}
-triangle obj_desc::f2t(long i){return {f2v(i,0),f2v(i,1),f2v(i,2)};}
+vec3 obj::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}
+vec3 obj::f2n(long i,int v){return ns[fs[i][2+3*(v%3)]-1];}
+triangle obj::f2t(long i){return {f2v(i,0),f2v(i,1),f2v(i,2)};}
+float obj::min3(long i,unsigned d){
+  return std::min(f2v(i,0)[d%3],std::min(f2v(i,1)[d%3],f2v(i,2)[d%3]));
+}
+float obj::max3(long i,unsigned d){
+  return std::max(f2v(i,0)[d%3],std::max(f2v(i,1)[d%3],f2v(i,2)[d%3]));
+}

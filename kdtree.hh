@@ -2,7 +2,7 @@
 
 #include<vector>
 #include"prim.hh"
-#include"parser.hh"
+#include"obj.hh"
 using namespace std;
 using namespace glm;
 
@@ -12,11 +12,11 @@ class kdtree {public:
   vector<long> ts;
   plane split;
   unsigned depth;
-  box bounds;
+  aabb bounds;
   kdtree*left,*right;
-  kdtree(obj_desc*,box,unsigned,vector<long>&);
+  kdtree(obj*,aabb,unsigned,vector<long>&);
   ~kdtree();
-  bool hit(obj_desc*,ray,vec3&,vec3&);
+  bool hit(obj*,ray,vec3&,vec3&);
   bool leafp();
 };
 

@@ -23,12 +23,14 @@ struct mtl {
   mtl(string&);
 };
 
-struct obj_desc {
+class obj {public:
   vector<vec3> vs,vts,ns;
   vector<face> fs;
   vector<mtl> mtls;
-  obj_desc(string&);
+  obj(string&);
   vec3 f2v(long,int);
   vec3 f2n(long,int);
   triangle f2t(long);
+  float min3(long,unsigned);
+  float max3(long,unsigned);
 };
