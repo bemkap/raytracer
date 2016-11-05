@@ -6,16 +6,15 @@ bool ray::hit(const box&b,float&in,float&out){
   in=-std::numeric_limits<float>::infinity();
   out=std::numeric_limits<float>::infinity();
   for(int i=0; i<3; ++i){
-    if(d[i]==0&&(o[i]<b.f[i]||o[i]>b.t[i])) return 0;
-    else if(d[i]!=0){
+    if(d[i]!=0){
       float t1=(b.f[i]-o[i])/d[i];
       float t2=(b.t[i]-o[i])/d[i];
       in =std::max( in,std::min(t1,t2));
       out=std::min(out,std::max(t1,t2));
-      if(in>out||out<0) return 0;
-    }
+    }else if(o[i]<=b.f[i]||o[i]>=b.t[i])
+      return false;
   }
-  return out>=in;
+  return (out>in)&&(out>0);
 }
 bool ray::hit(const plane&pl,vec3&i){
   float a,b,rt;

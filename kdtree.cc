@@ -12,8 +12,7 @@ using namespace glm;
 static plane findplane(obj_desc*o,unsigned d,vector<long>&t){
   plane p;
   p.n[d%3]=1;
-  float mn,mx;
-  mn=mx=o->f2v(t[0],0)[d%3];
+  float mn,mx; mn=mx=o->f2v(t[0],0)[d%3];
   for(auto i:t){
     mn=std::min(mn,std::min(o->f2v(i,0)[d%3],std::min(o->f2v(i,1)[d%3],o->f2v(i,2)[d%3])));
     mx=std::max(mx,std::max(o->f2v(i,0)[d%3],std::max(o->f2v(i,1)[d%3],o->f2v(i,2)[d%3])));
@@ -25,14 +24,15 @@ kdtree::kdtree(obj_desc*o,box b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
   if(d<20&&t.size()>10){
     split=findplane(o,d,t);
-    box lb,rb;
+    box lb,rb; lb=rb=b;
     lb.t[d%3]=rb.f[d%3]=split.p[d%3];
     vector<long> lt,rt;
-    for(auto i:t)
-      if((o->f2v(i,0)[d%3]+o->f2v(i,1)[d%3]+o->f2v(i,2)[d%3])/3<split.p[d%3])
-	lt.push_back(i);
-      else
+    for(auto i:t){
+      if(std::max(o->f2v(i,0)[d%3],std::max(o->f2v(i,1)[d%3],o->f2v(i,2)[d%3]))>split.p[d%3])
 	rt.push_back(i);
+      if(std::min(o->f2v(i,0)[d%3],std::min(o->f2v(i,1)[d%3],o->f2v(i,2)[d%3]))<split.p[d%3])
+	lt.push_back(i);
+    }
     left =new kdtree(o,lb,d+1,lt);
     right=new kdtree(o,rb,d+1,rt);
   }else for(auto i:t) ts.push_back(i);

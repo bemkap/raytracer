@@ -1,3 +1,4 @@
+#include<iostream>
 #include<cstdio>
 #include<fstream>
 #include<string.h>
@@ -25,16 +26,20 @@ obj_desc::obj_desc(string&fn){
   string line; char str[128];
   ifstream in(fn); face f; vec3 v;
   while(getline(in,line)){
-    if(sscanf(line.c_str(),"f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld",
-              &f.v0,&f.t0,&f.n0, &f.v1,&f.t1,&f.n1, &f.v2,&f.t2,&f.n2))
+    if(6==sscanf(line.c_str(),"f %ld//%ld %ld//%ld %ld//%ld",
+		 &f.v0,&f.n0, &f.v1,&f.n1, &f.v2,&f.n2)){
+      f.t0=f.t1=f.t2=-1;
       fs.push_back(f);
-    else if(sscanf(line.c_str(),"vn %f %f %f",&v.x,&v.y,&v.z))
+    }else if(9==sscanf(line.c_str(),"f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld",
+		       &f.v0,&f.t0,&f.n0, &f.v1,&f.t1,&f.n1, &f.v2,&f.t2,&f.n2))
+      fs.push_back(f);
+    else if(3==sscanf(line.c_str(),"vn %f %f %f",&v.x,&v.y,&v.z))
       ns.push_back(v);
-    else if(sscanf(line.c_str(),"vt %f %f",&v.x,&v.y))
+    else if(2==sscanf(line.c_str(),"vt %f %f",&v.x,&v.y))
       vts.push_back(v);
-    else if(sscanf(line.c_str(),"v %f %f %f",&v.x,&v.y,&v.z))
+    else if(3==sscanf(line.c_str(),"v %f %f %f",&v.x,&v.y,&v.z))
       vs.push_back(v);
-    else if(sscanf(line.c_str(),"mtllib %s",str)){
+    else if(1==sscanf(line.c_str(),"mtllib %s",str)){
       string fn(str);
       mtls.push_back(mtl(fn));
     }
