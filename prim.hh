@@ -8,7 +8,7 @@ using namespace glm;
 struct aabb     { vec3 f,t; };
 struct plane    { vec3 p,n; };
 struct triangle { vec3 p,q,r; };
-struct light    { vec3 p,c; };
+struct light    { vec3 p,c; float ia,id,is; };
 
 struct ray {
   vec3 o,d;

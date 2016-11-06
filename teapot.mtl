@@ -1,8 +1,9 @@
 # Blender MTL File: 'Utah Teapot.blend'
 # Material Count: 1
+# 96.078431
 
 newmtl m1
-Ns 96.078431
+Ns 27
 Ka 0.000000 0.000000 0.000000
 Kd 0.640000 0.640000 0.512000
 Ks 0.250000 0.250000 0.250000
