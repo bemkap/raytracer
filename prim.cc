@@ -2,6 +2,19 @@
 #include<limits>
 #include"prim.hh"
 
+ray::ray(vec3 o,vec3 n):o(o),n(n){
+  vec3 N=normalize(n);
+  n1.x=-acos(N.x);
+  n1.y=-acos(N.y);
+  n1.z=-acos(N.z);
+  l=length(n);
+}
+void ray::direct(float i,float j){
+  d={l,i,j};
+  d=rotate(d,n1.x,{1,0,0});
+  d=rotate(d,n1.y,{0,1,0});
+  d=rotate(d,n1.z,{0,0,1});
+}
 bool ray::hit(const aabb&b,float&in,float&out){
   in=-std::numeric_limits<float>::infinity();
   out=std::numeric_limits<float>::infinity();
