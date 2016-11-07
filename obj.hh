@@ -18,14 +18,14 @@ struct face {
 
 class obj {public:
   state st;
-  vector<vec3> vs,vts,ns;
+  vector<dvec3> vs,vts,ns;
   vector<face> fs;
   vector<mtl*> mtls;
   obj(string&);
   ~obj();
-  vec3 f2v(long,int);
-  vec3 f2n(long,int);
+  dvec3 f2v(long,int);
+  dvec3 f2n(long,int);
   triangle f2t(long);
-  float min3(long,unsigned);
-  float max3(long,unsigned);
+  double min3(long,unsigned);
+  double max3(long,unsigned);
 };

@@ -16,11 +16,11 @@ class kdtree {public:
   kdtree*left,*right;
   kdtree(obj*,aabb,unsigned,vector<long>&);
   ~kdtree();
-  bool hit(obj*,ray,vec3&,vec3&);
+  bool hit(obj*,ray,dvec3&,dvec3&);
   bool leafp();
 };
 
 struct elem {
   kdtree*node;
-  float in,out;
+  double in,out;
 };

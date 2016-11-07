@@ -10,11 +10,11 @@ using namespace glm;
 
 enum method {SPATIAL,SAH};
 
-template<method M>plane findplane(obj*,unsigned,vector<long>&);
-template<>plane findplane<SPATIAL>(obj*o,unsigned d,vector<long>&t){
+template<method M>plane find_plane(obj*,unsigned,vector<long>&,aabb);
+template<>plane find_plane<SPATIAL>(obj*o,unsigned d,vector<long>&t,aabb b){
   plane p;
   p.n[d%3]=1;
-  float mn,mx; mn=mx=o->f2v(t[0],0)[d%3];
+  double mn,mx; mn=mx=o->f2v(t[0],0)[d%3];
   for(auto i:t){
     mn=std::min(mn,o->min3(i,d));
     mx=std::max(mx,o->max3(i,d));
@@ -22,13 +22,27 @@ template<>plane findplane<SPATIAL>(obj*o,unsigned d,vector<long>&t){
   p.p[d%3]=(mn+mx)/2;
   return p;
 }
-template<>plane findplane<SAH>(obj*o,unsigned d,vector<long>&t){
-  plane p; return p;
+template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&t,aabb b){
+  long i_mn; double c_mn,C;
+  double t_cost=t.size(),i_cost=1;
+  for(size_t i=0; i<t.size(); ++i){
+    double p=o->max3(t[i],d);
+    double l_area=2*(p-b.f[d%3])*(b.t[(d+1)%3]-b.f[(d+1)%3])*(b.t[(d+2)%3]-b.f[(d+2)%3]);
+    double r_area=2*(b.t[d%3]-p)*(b.t[(d+1)%3]-b.f[(d+1)%3])*(b.t[(d+2)%3]-b.f[(d+2)%3]);
+    size_t l_count=i;
+    size_t r_count=t.size()-i;
+    C=t_cost+i_cost*(l_area*l_count+r_area*r_count);
+    if(C<c_mn){c_mn=C; i_mn=i;}
+  }
+  plane p;
+  p.n[d%3]=1;
+  p.p[d%3]=o->max3(t[i_mn],d);
+  return p;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
   if(d<20&&t.size()>10){
-    split=findplane<SPATIAL>(o,d,t);
+    split=find_plane<SPATIAL>(o,d,t,b);
     aabb lb,rb; lb=rb=b;
     lb.t[d%3]=rb.f[d%3]=split.p[d%3];
     vector<long> lt,rt;
@@ -44,7 +58,7 @@ kdtree::~kdtree(){
   if(nullptr!= left) delete  left;
   if(nullptr!=right) delete right;
 }
-bool kdtree::hit(obj*o,ray r,vec3&v,vec3&n){
+bool kdtree::hit(obj*o,ray r,dvec3&v,dvec3&n){
   stack<elem> stk;
   elem c; c.node=this;
   if(r.hit(bounds,c.in,c.out)){
@@ -52,8 +66,8 @@ bool kdtree::hit(obj*o,ray r,vec3&v,vec3&n){
     while(!stk.empty()){
       c=stk.top(); stk.pop();
       while(!c.node->leafp()){
-        float s=c.node->split.p[c.node->depth%3]-r.o[c.node->depth%3];
-	float t=s/r.d[c.node->depth%3];
+        double s=c.node->split.p[c.node->depth%3]-r.o[c.node->depth%3];
+	double t=s/r.d[c.node->depth%3];
 	kdtree*near,*far;
 	if(s>=0){near=c.node->left; far=c.node->right;}
 	else{near=c.node->right; far=c.node->left;}
@@ -67,12 +81,14 @@ bool kdtree::hit(obj*o,ray r,vec3&v,vec3&n){
       }
       for(auto i:c.node->ts){
 	triangle tr=o->f2t(i);
-	vec3 uv;
+	dvec3 uv;
 	if(r.hit(tr,v,uv)){
-	  vec3 n0=o->f2n(i,0);
-	  vec3 n1=o->f2n(i,1);
-	  vec3 n2=o->f2n(i,2);
-	  n=(1-uv.x-uv.y)*n0+uv.x*n1+(1-uv.x)*n2;
+          try{
+            dvec3 n0=o->f2n(i,0);
+            dvec3 n1=o->f2n(i,1);
+            dvec3 n2=o->f2n(i,2);
+            n=(1-uv.x-uv.y)*n0+uv.x*n1+(1-uv.x)*n2;
+          }catch(int e){n=r.o-v;}
 	  return true;
 	}
       }

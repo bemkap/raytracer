@@ -1,3 +1,7 @@
 ## RAY TRACER IN C
 
 WILL BE ~~PAIN~~ FUN
+
+## UPDATE: IN C++11
+
+NOW IS FUN

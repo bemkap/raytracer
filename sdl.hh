@@ -2,6 +2,7 @@
 
 #include<SDL2/SDL.h>
 #include<glm/vec3.hpp>
+using namespace glm;
 
 constexpr int WIDTH=300,HEIGHT=300;
 
@@ -12,7 +13,8 @@ struct sdl {
   Uint32 pixmap[WIDTH*HEIGHT];
   sdl();
   ~sdl();
+  void clear();
   void draw();
-  void set(int,int,glm::vec3);
-  void waitexit();
+  void set(int,int,dvec3);
+  void wait_input(dvec3&,dvec3&,bool&,bool&);
 };

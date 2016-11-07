@@ -14,9 +14,9 @@ enum state {GOOD,BAD};
 class mtl {public:
   state st;
   string name;
-  vec3 ka,kd,ks;//ambient,diffuse,specular
-  float ns,ni,d;//specular exponent,refraction,transparency
+  dvec3 ka,kd,ks;//ambient,diffuse,specular
+  double ns,ni,d;//specular exponent,refraction,transparency
   int illum;//illumination model
   mtl(string&);
-  vec3 I(vector<light>&,vec3,vec3,vec3);
+  dvec3 I(vector<light>&,dvec3,dvec3,dvec3);
 };
