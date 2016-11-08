@@ -41,7 +41,7 @@ void sdl::wait_input(dvec3&p,bool&quit,bool&redraw){
   }
   quit=false; redraw=true;
 }
-void sdl::r2s(double i,double j,double&x,double&y,double fov){
+void sdl::r2s(double i,double j,double&x,double&y,double fov,double r){
   x=(2*((i+0.5)/double(WIDTH))-1)*tan(radians(fov/2))*r;
   y=(1-2*((j+0.5)/double(HEIGHT)))*tan(radians(fov/2));
 }

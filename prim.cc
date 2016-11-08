@@ -4,11 +4,13 @@
 
 ray::ray(dvec3 o,double fov,dvec3 a):o(o),fov(fov){
   c2w=dmat4x4();
+  a=normalize(a);
   c2w=rotate(c2w,radians(a.x),{1,0,0});
   c2w=rotate(c2w,radians(a.y),{0,1,0});
   c2w=rotate(c2w,radians(a.z),{0,0,1});
   c2w=translate(c2w,o);
 }
+ray::ray(dvec3 o,double fov):ray(o,fov,-o){}
 void ray::direct(double x,double y){
   dvec4 pw;
   pw=c2w*dvec4(x,y,-1.0,1.0);

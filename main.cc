@@ -1,4 +1,5 @@
 #include<algorithm>
+#include<fstream>
 #include"kdtree.hh"
 #include"obj.hh"
 #include"sdl.hh"
@@ -7,14 +8,15 @@
 using namespace std;
 
 int main(int argc,char*argv[]){
-  if(argc<2) return 1;
-  string fn(argv[1]);
+  if(argc<3) return 1;
+  string in(argv[1]);
+  ofstream os(argv[2],ofstream::out);
+  os<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   dvec3 v,n; aabb b;
   vector<light> ls;
-  ray r({0,3,30},60.0,{0,0,0});
-  obj*o=new obj(fn);
+  ray r({0,-3,30},60.0);
+  obj*o=new obj(in);
   if(GOOD==o->st){
-    sdl*g=new sdl();
     vector<long> ts(o->fs.size());
     generate_n(ts.begin(),o->fs.size(),[](){static long n=0; return n++;});
     for(auto v:o->vs)
@@ -23,31 +25,21 @@ int main(int argc,char*argv[]){
         b.t[i]=std::max(b.t[i],v[i]);
       }
     kdtree*t=new kdtree(o,b,0,ts);
-    ls.push_back({{0,0,3.5},{255,255,255},1,1,1});
-    bool quit=false, redraw=true;
-    while(!quit){if(redraw){
-        double x,y;
-        g->clear();
-        for(int i=0; i<WIDTH; ++i){
-          for(int j=0; j<HEIGHT; ++j){
-            g->r2s(double(i),double(j),x,y,r.fov);
-            r.direct(x,y);
-            // r.direct(-1+i*(2.0/WIDTH),-1+j*(2.0/HEIGHT));
-            if(t->hit(o,r,v,n)){
-              dvec3 I=o->mtls.size()>0?o->mtls[0]->I(ls,v,n,r.o):dvec3(1,1,1);
-              g->set(j,i,I);
-            }
-          }
-        }
-        g->draw();
-        SDL_Delay(1000);
+    ls.push_back({{0,-3,30},{255,255,255},1,1,1});
+    double x,y,ir=double(WIDTH)/double(HEIGHT);
+    for(int i=0; i<WIDTH; ++i){
+      for(int j=0; j<HEIGHT; ++j){
+        dvec3 I(0,0,0);
+        sdl::r2s(double(i),double(j),x,y,r.fov,ir);
+        r.direct(x,y);
+        if(t->hit(o,r,v,n)) I=255.0*(o->mtls.size()>0?o->mtls[0]->I(ls,v,n,r.o):dvec3(1,1,1));
+        os<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
-      g->wait_input(r.o,quit,redraw);
-      r=ray(r.o,60.0,{0,0,0});
+      os<<endl;
     }
     delete t;
-    delete g;
   }
+  os.close();
   delete o;
   return 0;
 }

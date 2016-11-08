@@ -15,6 +15,7 @@ struct ray {
   double fov;
   dmat4x4 c2w;
   ray(dvec3,double,dvec3);
+  ray(dvec3,double);
   void direct(double i,double j);
   bool hit(const aabb&,double&,double&);
   bool hit(const plane&,dvec3&);

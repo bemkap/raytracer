@@ -17,5 +17,5 @@ struct sdl {
   void draw();
   void set(int,int,dvec3);
   void wait_input(dvec3&,bool&,bool&);
-  void r2s(double,double,double&,double&,double);
+  static void r2s(double,double,double&,double&,double,double);
 };
