@@ -11,9 +11,10 @@ struct triangle { dvec3 p,q,r; };
 struct light    { dvec3 p,c; double ia,id,is; };
 
 struct ray {
-  dvec3 o,n,n1,d;
-  double l;
-  ray(dvec3,dvec3);
+  dvec3 o,d;
+  double fov;
+  dmat4x4 c2w;
+  ray(dvec3,double,dvec3);
   void direct(double i,double j);
   bool hit(const aabb&,double&,double&);
   bool hit(const plane&,dvec3&);

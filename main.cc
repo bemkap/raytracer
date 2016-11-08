@@ -11,7 +11,7 @@ int main(int argc,char*argv[]){
   string fn(argv[1]);
   dvec3 v,n; aabb b;
   vector<light> ls;
-  ray r({0,0,5},{0,0,-5});//ray r({0,3,-30},{0,0,3});
+  ray r({0,3,30},60.0,{0,0,0});
   obj*o=new obj(fn);
   if(GOOD==o->st){
     sdl*g=new sdl();
@@ -26,18 +26,24 @@ int main(int argc,char*argv[]){
     ls.push_back({{0,0,3.5},{255,255,255},1,1,1});
     bool quit=false, redraw=true;
     while(!quit){if(redraw){
+        double x,y;
         g->clear();
-        for(int i=0; i<WIDTH; ++i)
+        for(int i=0; i<WIDTH; ++i){
           for(int j=0; j<HEIGHT; ++j){
-            r.direct(-1+i*(2.0/WIDTH),-1+j*(2.0/HEIGHT));
+            g->r2s(double(i),double(j),x,y,r.fov);
+            r.direct(x,y);
+            // r.direct(-1+i*(2.0/WIDTH),-1+j*(2.0/HEIGHT));
             if(t->hit(o,r,v,n)){
               dvec3 I=o->mtls.size()>0?o->mtls[0]->I(ls,v,n,r.o):dvec3(1,1,1);
               g->set(j,i,I);
             }
           }
+        }
         g->draw();
+        SDL_Delay(1000);
       }
-      g->wait_input(r.o,r.d,quit,redraw);
+      g->wait_input(r.o,quit,redraw);
+      r=ray(r.o,60.0,{0,0,0});
     }
     delete t;
     delete g;

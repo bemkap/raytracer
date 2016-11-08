@@ -10,11 +10,12 @@ struct sdl {
   SDL_Window*wi;
   SDL_Renderer*re;
   SDL_PixelFormat fmt;
+  double r;
   Uint32 pixmap[WIDTH*HEIGHT];
-  sdl();
-  ~sdl();
+  sdl(); ~sdl();
   void clear();
   void draw();
   void set(int,int,dvec3);
-  void wait_input(dvec3&,dvec3&,bool&,bool&);
+  void wait_input(dvec3&,bool&,bool&);
+  void r2s(double,double,double&,double&,double);
 };

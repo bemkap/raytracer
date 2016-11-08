@@ -2,18 +2,17 @@
 #include<limits>
 #include"prim.hh"
 
-ray::ray(dvec3 o,dvec3 n):o(o),n(n){
-  dvec3 N=normalize(n-dvec3(1,0,0));
-  n1.x=acos(N.x);
-  n1.y=acos(N.y);
-  n1.z=acos(N.z);
-  l=length(n);
+ray::ray(dvec3 o,double fov,dvec3 a):o(o),fov(fov){
+  c2w=dmat4x4();
+  c2w=rotate(c2w,radians(a.x),{1,0,0});
+  c2w=rotate(c2w,radians(a.y),{0,1,0});
+  c2w=rotate(c2w,radians(a.z),{0,0,1});
+  c2w=translate(c2w,o);
 }
-void ray::direct(double i,double j){
-  d={l,i,j};
-  d=rotate(d,n1.x,{1,0,0});
-  d=rotate(d,n1.y,{0,1,0});
-  d=rotate(d,n1.z,{0,0,1});
+void ray::direct(double x,double y){
+  dvec4 pw;
+  pw=c2w*dvec4(x,y,-1.0,1.0);
+  d =normalize(dvec3(pw.x,pw.y,pw.z)-o);
 }
 bool ray::hit(const aabb&b,double&in,double&out){
   in=-std::numeric_limits<double>::infinity();
