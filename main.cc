@@ -32,7 +32,11 @@ int main(int argc,char*argv[]){
         dvec3 I(0,0,0);
         sdl::r2s(double(i),double(j),x,y,r.fov,ir);
         r.direct(x,y);
-        if(t->hit(o,r,v,n)) I=255.0*(o->mtls.size()>0?o->mtls[0]->I(ls,v,n,r.o):dvec3(1,1,1));
+        if(t->hit(o,r,v,n)){
+          I=255.0*o->mtls[0]->I(ls,v,n,r.o);
+          ray s(v,r.d-2.0*dot(r.d,n)*n);
+          if(t->hit(o,s,v,n))
+            
         os<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
       os<<endl;

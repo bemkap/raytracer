@@ -11,6 +11,7 @@ ray::ray(dvec3 o,double fov,dvec3 a):o(o),fov(fov){
   c2w=translate(c2w,o);
 }
 ray::ray(dvec3 o,double fov):ray(o,fov,-o){}
+ray::ray(dvec3 o,dvec3 d):o(o),d(d){}
 void ray::direct(double x,double y){
   dvec4 pw;
   pw=c2w*dvec4(x,y,-1.0,1.0);
