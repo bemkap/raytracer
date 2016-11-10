@@ -9,10 +9,8 @@ using namespace glm;
 using namespace std;
 
 struct face {
-  union {
-    long a[9];
-    struct { long v0,t0,n0, v1,t1,n1, v2,t2,n2; };
-  };
+  char m;
+  long v0,t0,n0, v1,t1,n1, v2,t2,n2;
   long operator[](int);
 };
 
@@ -21,8 +19,7 @@ class obj {public:
   vector<dvec3> vs,vts,ns;
   vector<face> fs;
   vector<mtl*> mtls;
-  obj(string&);
-  ~obj();
+  obj(string&); ~obj();
   dvec3 f2v(long,int);
   dvec3 f2n(long,int);
   triangle f2t(long);

@@ -9,6 +9,7 @@ using namespace std;
 using namespace glm;
 
 enum method {SPATIAL,SAH};
+constexpr int MAX_DEPTH=1;
 
 template<method M>plane find_plane(obj*,unsigned,vector<long>&,aabb);
 template<>plane find_plane<SPATIAL>(obj*o,unsigned d,vector<long>&t,aabb b){
@@ -58,7 +59,8 @@ kdtree::~kdtree(){
   if(nullptr!= left) delete  left;
   if(nullptr!=right) delete right;
 }
-bool kdtree::hit(obj*o,ray r,dvec3&v,dvec3&n){
+bool kdtree::leafp(){return !(left||right);}
+bool kdtree::hit(obj*o,ray r,dvec3&I,vector<light>&ls,int rtd){
   stack<elem> stk;
   elem c; c.node=this;
   if(r.hit(bounds,c.in,c.out)){
@@ -81,14 +83,16 @@ bool kdtree::hit(obj*o,ray r,dvec3&v,dvec3&n){
       }
       for(auto i:c.node->ts){
 	triangle tr=o->f2t(i);
-	dvec3 uv;
-	if(r.hit(tr,v,uv)){
-          try{
-            dvec3 n0=o->f2n(i,0);
-            dvec3 n1=o->f2n(i,1);
-            dvec3 n2=o->f2n(i,2);
-            n=(1-uv.x-uv.y)*n0+uv.x*n1+(1-uv.x)*n2;
-          }catch(int e){n=r.o-v;}
+	dvec3 v,n,bc;
+	if(r.hit(tr,v,bc)){
+          try{n=bc.x*o->f2n(i,0)+bc.y*o->f2n(i,1)+bc.z*o->f2n(i,2);}
+          catch(int e){n=r.o-v;}
+          I+=o->mtls[o->fs[i].m]->I(ls,v,n,r.o);
+          if(rtd<MAX_DEPTH){
+            dvec3 N=normalize(n), d=r.d-2.0*dot(r.d,N)*N;
+            ray s(v+d*0.001); s.d=d;
+            hit(o,s,I,ls,rtd+1);
+          }
 	  return true;
 	}
       }
@@ -96,4 +100,3 @@ bool kdtree::hit(obj*o,ray r,dvec3&v,dvec3&n){
   }
   return false;
 }
-bool kdtree::leafp(){return !(left||right);}

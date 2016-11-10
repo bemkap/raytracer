@@ -29,7 +29,7 @@ dvec3 mtl::I(vector<light>&ls,dvec3 i,dvec3 n,dvec3 v){
     dvec3 L=normalize(l.p-i);
     I+=kd*dot(L,N)*l.id;
     dvec3 R=2*dot(L,N)*N-L;
-    I+=ks*pow(dot(R,normalize(v-i)),ns)*l.is;
+    I+=ks*pow(dot(normalize(R),normalize(v-i)),ns)*l.is;
   }
   return I+ka*ia;
 }

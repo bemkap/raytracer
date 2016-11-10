@@ -6,18 +6,15 @@
 using namespace std;
 using namespace glm;
 
-struct elem;
-
 class kdtree {public:
   vector<long> ts;
   plane split;
   unsigned depth;
   aabb bounds;
   kdtree*left,*right;
-  kdtree(obj*,aabb,unsigned,vector<long>&);
-  ~kdtree();
-  bool hit(obj*,ray,dvec3&,dvec3&);
+  kdtree(obj*,aabb,unsigned,vector<long>&); ~kdtree();
   bool leafp();
+  bool hit(obj*,ray,dvec3&,vector<light>&ls,int);
 };
 
 struct elem {

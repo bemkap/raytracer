@@ -2,7 +2,7 @@
 #include<limits>
 #include"prim.hh"
 
-ray::ray(dvec3 o,double fov,dvec3 a):o(o),fov(fov){
+ray::ray(dvec3 o,dvec3 a):o(o){
   c2w=dmat4x4();
   a=normalize(a);
   c2w=rotate(c2w,radians(a.x),{1,0,0});
@@ -10,8 +10,7 @@ ray::ray(dvec3 o,double fov,dvec3 a):o(o),fov(fov){
   c2w=rotate(c2w,radians(a.z),{0,0,1});
   c2w=translate(c2w,o);
 }
-ray::ray(dvec3 o,double fov):ray(o,fov,-o){}
-ray::ray(dvec3 o,dvec3 d):o(o),d(d){}
+ray::ray(dvec3 o):ray(o,-o){}
 void ray::direct(double x,double y){
   dvec4 pw;
   pw=c2w*dvec4(x,y,-1.0,1.0);
@@ -51,7 +50,7 @@ bool ray::hit(const triangle&tr,dvec3&i,dvec3&c){
     if(s<0.0||s>1.0) return false;
     t=(uv*wu-uu*wv)/D;
     if(t<0.0||(s+t)>1.0) return false;
-    c={s,t,0};//barycentric coordinates
+    c={1.0-s-t,s,t};//barycentric coordinates
     return true;
   }else return false;
 }
