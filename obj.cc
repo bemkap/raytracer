@@ -37,9 +37,9 @@ obj::obj(string&fn){
       }else if(1==sscanf(line.c_str(),"usemtl %s",str))
         cm=mm.at(str);
     }
-    in.close();
     st=GOOD;
   }
+  in.close();
 }
 obj::~obj(){for(auto m:mtls) delete m;}
 dvec3 obj::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}

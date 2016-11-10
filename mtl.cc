@@ -5,24 +5,25 @@
 
 mtl::mtl(string&fn){
   string line; char str[128]={0};
-  ifstream in(fn);
+  ifstream in(fn); mat*cm;
   if(in.rdstate()&ifstream::failbit) st=BAD;
   else{
     while(getline(in,line)){
-      if(sscanf(line.c_str(),"newmtl %s",str)) name=string(str,strlen(str));
-      else if(1==sscanf(line.c_str(),"Ns %lf",&ns));
-      else if(3==sscanf(line.c_str(),"Ka %lf %lf %lf",&ka.x,&ka.y,&ka.z));
-      else if(3==sscanf(line.c_str(),"Kd %lf %lf %lf",&kd.x,&kd.y,&kd.z));
-      else if(3==sscanf(line.c_str(),"Ks %lf %lf %lf",&ks.x,&ks.y,&ks.z));
-      else if(1==sscanf(line.c_str(),"Ni %lf",&ni));
-      else if(1==sscanf(line.c_str(),"d %lf",&d));
-      else if(1==sscanf(line.c_str(),"illum %d",&illum));
+      if(1==sscanf(line.c_str(),"newmtl %s",str)) ms[str]=cm=new mat;
+      else if(1==sscanf(line.c_str(),"Ns %lf",&cm->ns));
+      else if(3==sscanf(line.c_str(),"Ka %lf %lf %lf",&cm->ka.x,&cm->ka.y,&cm->ka.z));
+      else if(3==sscanf(line.c_str(),"Kd %lf %lf %lf",&cm->kd.x,&cm->kd.y,&cm->kd.z));
+      else if(3==sscanf(line.c_str(),"Ks %lf %lf %lf",&cm->ks.x,&cm->ks.y,&cm->ks.z));
+      else if(1==sscanf(line.c_str(),"Ni %lf",&cm->ni));
+      else if(1==sscanf(line.c_str(),"d %lf",&cm->d));
+      else if(1==sscanf(line.c_str(),"illum %d",&cm->illum));
     }
-    in.close();
     st=GOOD;
   }
+  in.close();
 }
-dvec3 mtl::I(vector<light>&ls,dvec3 i,dvec3 n,dvec3 v){
+mtl::~mtl(){for(auto m:ms) delete m;}
+dvec3 mat::I(vector<light>&ls,dvec3 i,dvec3 n,dvec3 v){
   dvec3 I,N=normalize(n); double ia=0;
   for(auto l:ls){
     ia+=l.ia;
