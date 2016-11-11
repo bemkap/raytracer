@@ -16,7 +16,7 @@ int main(int argc,char*argv[]){
   cout<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b;
   vector<light> ls;
-  ray r({0,0,3});
+  ray r({120,120,120});
   obj*o=new obj(in);
   if(GOOD==o->st){
     vector<long> ts(o->fs.size());
@@ -27,7 +27,7 @@ int main(int argc,char*argv[]){
         b.t[i]=std::max(b.t[i],v[i]);
       }
     kdtree*t=new kdtree(o,b,0,ts);
-    ls.push_back({{0,0,3},{0,0,0},1,1,1});
+    ls.push_back({{6,9,9},{0,0,0},1,1,1});
     double x,y,ir=double(WIDTH)/double(HEIGHT);
     for(int i=0; i<WIDTH; ++i){
       for(int j=0; j<HEIGHT; ++j){
