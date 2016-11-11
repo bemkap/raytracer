@@ -87,7 +87,7 @@ bool kdtree::hit(obj*o,ray r,dvec3&I,vector<light>&ls,int rtd){
 	if(r.hit(tr,v,bc)){
           try{n=bc.x*o->f2n(i,0)+bc.y*o->f2n(i,1)+bc.z*o->f2n(i,2);}
           catch(int e){n=r.o-v;}
-          I+=o->mtls[o->fs[i].m]->I(ls,v,n,r.o);
+          I+=o->fs[i].m->I(ls,v,n,r.o);
           if(rtd<MAX_DEPTH){
             dvec3 N=normalize(n), d=r.d-2.0*dot(r.d,N)*N;
             ray s(v+d*0.001); s.d=d;

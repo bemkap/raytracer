@@ -10,7 +10,7 @@ long face::operator[](int i){
 obj::obj(string&fn){
   string line; char str[128];
   ifstream in(fn); face f; dvec3 v;
-  map<string,char> mm; char cm=-1;
+  mat*cm;
   if(in.rdstate()&ifstream::failbit) st=BAD;
   else{
     while(getline(in,line)){
@@ -31,9 +31,7 @@ obj::obj(string&fn){
         vs.push_back(v);
       else if(1==sscanf(line.c_str(),"mtllib %s",str)){
         string fn(str);
-        mtl*m=new mtl(fn);
-        if(GOOD==m->st){mm[m->name]=mtls.size(); mtls.push_back(m);}
-        else delete m;
+	mtl::read(fn,mm);
       }else if(1==sscanf(line.c_str(),"usemtl %s",str))
         cm=mm.at(str);
     }
@@ -41,7 +39,7 @@ obj::obj(string&fn){
   }
   in.close();
 }
-obj::~obj(){for(auto m:mtls) delete m;}
+obj::~obj(){for(auto m:mm) delete m.second;}
 dvec3 obj::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}
 dvec3 obj::f2n(long i,int v){
   if(-1==fs[i][2+3*(v%3)]) throw -1;
