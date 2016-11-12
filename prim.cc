@@ -3,18 +3,13 @@
 #include"prim.hh"
 
 ray::ray(dvec3 o,dvec3 a):o(o){
-  c2w=dmat4x4();
-  a=normalize(a);
-  c2w=rotate(c2w,radians(acos(a.x)),{1,0,0});
-  c2w=rotate(c2w,radians(acos(a.y)),{0,1,0});
-  c2w=rotate(c2w,radians(acos(a.z)),{0,0,1});
-  c2w=translate(c2w,o);
+  c2w=lookAt(o,o+a,dvec3(0,1,0));
 }
 ray::ray(dvec3 o):ray(o,-o){}
 void ray::direct(double x,double y){
   dvec4 pw;
-  pw=c2w*dvec4(x,y,-1.0,1.0);
-  d =normalize(dvec3(pw.x,pw.y,pw.z)-o);
+  pw=dvec4(x,y,-1.0,1.0)*c2w;
+  d =normalize(dvec3(pw));
 }
 bool ray::hit(const aabb&b,double&in,double&out){
   in=-std::numeric_limits<double>::infinity();
