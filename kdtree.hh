@@ -14,7 +14,7 @@ class kdtree {public:
   kdtree*left,*right;
   kdtree(obj*,aabb,unsigned,vector<long>&); ~kdtree();
   bool leafp();
-  bool hit(obj*,ray,dvec3&,vector<light>&ls,int);
+  bool hit(obj*,ray,dvec3&,dvec3&,vector<light>&ls,int);
 };
 
 struct elem {

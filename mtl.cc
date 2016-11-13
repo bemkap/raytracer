@@ -27,10 +27,10 @@ dvec3 mat::I(vector<light>&ls,dvec3 i,dvec3 n,dvec3 v){
   for(auto l:ls){
     ia+=l.ia;
     dvec3 L=normalize(l.p-i);
-    double LN=std::max(0.0,std::min(1.0,dot(L,N)));
+    double LN=dot(L,N);
     I+=kd*LN*l.id;
     dvec3 R=2*LN*N-L;
-    double T=std::max(0.0,std::min(1.0,dot(normalize(R),normalize(v-i))));
+    double T=dot(normalize(R),normalize(v-i));
     I+=ks*pow(T,ns)*l.is;
   }
   return I+ka*ia;
