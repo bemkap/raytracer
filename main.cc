@@ -17,7 +17,7 @@ int main(int argc,char*argv[]){
   cout<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b; dvec3 v;
   vector<light> ls;
-  ls.push_back({{1,3,-2},{255,255,255},0.2,0.2,0.2});
+  ls.push_back({{4,4,0},{0,0,0},0.5,0.5,0.5});
   ray r({2,2,-2});
   obj*o=new obj(in);
   double x,y;
