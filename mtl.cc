@@ -22,16 +22,19 @@ bool mtl::read(string&fn,map<string,mat*>&mm){
   in.close();
   return true;
 }
-dvec3 mat::I(vector<light>&ls,dvec3 i,dvec3 n,dvec3 v){
+dvec3 mat::I(vector<light>&ls,dvec3&i,dvec3&n,dvec3&v){
   dvec3 I,N=normalize(n); double ia=0;
   for(auto l:ls){
     ia+=l.ia;
     dvec3 L=normalize(l.p-i);
     double LN=dot(L,N);
     I+=kd*LN*l.id;
-    dvec3 R=2*LN*N-L;
-    double T=dot(normalize(R),normalize(v-i));
-    I+=ks*pow(T,ns)*l.is;
+    if(illum>1){
+      dvec3 R=2*LN*N-L;
+      double T=dot(normalize(R),normalize(v-i));
+      I+=ks*(pow(T,ns)*l.is);
+    }
   }
+  if(illum>2) I+=ks*ir;
   return I+ka*ia;
 }

@@ -4,9 +4,7 @@
 #include"obj.hh"
 using namespace std;
 
-long face::operator[](int i){
-  return (long[]){v0,t0,n0,v1,t1,n1,v2,t2,n2}[i%9];
-}
+long face::operator[](int i){return a[i%9];}
 obj::obj(string&fn){
   string line; char str[128];
   ifstream in(fn); face f; dvec3 v;

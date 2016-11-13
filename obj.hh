@@ -10,7 +10,7 @@ using namespace std;
 
 struct face {
   mat*m;
-  long v0,t0,n0, v1,t1,n1, v2,t2,n2;
+  union { long a[9]; struct { long v0,t0,n0, v1,t1,n1, v2,t2,n2; };};
   long operator[](int);
 };
 

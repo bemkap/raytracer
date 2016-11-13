@@ -63,6 +63,7 @@ bool kdtree::leafp(){return !(left||right);}
 bool kdtree::hit(obj*o,ray r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
   stack<elem> stk;
   elem c; c.node=this;
+  dvec3 n,bc;
   if(r.hit(bounds,c.in,c.out)){
     stk.push(c);
     while(!stk.empty()){
@@ -83,7 +84,6 @@ bool kdtree::hit(obj*o,ray r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
       }
       for(auto i:c.node->ts){
 	triangle tr=o->f2t(i);
-	dvec3 n,bc;
 	if(r.hit(tr,v,bc)){
           try{n=bc.x*o->f2n(i,0)+bc.y*o->f2n(i,1)+bc.z*o->f2n(i,2);}
           catch(int e){n=r.o-v;}
@@ -93,14 +93,6 @@ bool kdtree::hit(obj*o,ray r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
             ray r2(v+d*0.001); r2.d=d;
             hit(o,r2,I,v,ls,rtd+1);
           }
-          // double sh=1;
-          // for(auto l:ls){
-          //   dvec3 lv=l.p-v,J,w;
-          //   ray r1(v+lv*0.001,lv);
-          //   if(hit(o,r1,J,w,ls,MAX_DEPTH)&&(length(l.p-w)<length(lv)))
-          //     sh=0;//length(l.p-w)/length(lv);
-          // }
-          // I*=sh;
 	  return true;
 	}
       }
