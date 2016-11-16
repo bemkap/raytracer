@@ -9,19 +9,20 @@ ray::ray(dvec3 o):ray(o,-o){}
 void ray::direct(double x,double y){
   dvec4 pw;
   pw=dvec4(x,y,-1.0,1.0)*c2w;
-  d =normalize(dvec3(pw));
+  d=normalize(dvec3(pw));
+  inv.x=1/d.x; inv.y=1/d.y; inv.z=1/d.z;
 }
+void ray::direct(dvec3&v){d=v; inv.x=1/d.x; inv.y=1/d.y; inv.z=1/d.z;}
 bool ray::hit(const aabb&b,double&in,double&out){
-  in=-std::numeric_limits<double>::infinity();
-  out=std::numeric_limits<double>::infinity();
-  for(int i=0; i<3; ++i){
-    if(d[i]!=0){
-      double t1=(b.f[i]-o[i])/d[i];
-      double t2=(b.t[i]-o[i])/d[i];
-      in =std::max( in,std::min(t1,t2));
-      out=std::min(out,std::max(t1,t2));
-    }else if(o[i]<=b.f[i]||o[i]>=b.t[i])
-      return false;
+  double t1=(b.f[0]-o[0])*inv[0];
+  double t2=(b.t[0]-o[0])*inv[0];
+  in=std::min(t1,t2);
+  out=std::max(t1,t2);
+  for(int i=1; i<3; ++i){
+    t1=(b.f[i]-o[i])*inv[i];
+    t2=(b.t[i]-o[i])*inv[i];
+    in =std::max( in,std::min(t1,t2));
+    out=std::min(out,std::max(t1,t2));
   }
   return (out>=in)&&(out>0);
 }
@@ -48,4 +49,9 @@ bool ray::hit(const triangle&tr,dvec3&i,dvec3&c){
     c={1.0-s-t,s,t};//barycentric coordinates
     return true;
   }else return false;
+}
+void saturate(dvec3&I){
+  I.x=std::min(1.0,std::max(0.0,I.x));
+  I.y=std::min(1.0,std::max(0.0,I.y));
+  I.z=std::min(1.0,std::max(0.0,I.z));
 }

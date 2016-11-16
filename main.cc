@@ -17,8 +17,8 @@ int main(int argc,char*argv[]){
   cout<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b; dvec3 v;
   vector<light> ls;
-  ls.push_back({{4,4,0},{0,0,0},0.5,0.5,0.5});
-  ray r({2,2,-2});
+  ls.push_back({.p={10,3,2},.c={0,0,0},.ia=0.9,.id=0.3,.is=0.3});
+  ray r({5,5,-5});
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){
@@ -35,8 +35,8 @@ int main(int argc,char*argv[]){
         dvec3 I(0,0,0);
         r2s(double(i),double(j),x,y,90.0);
         r.direct(x,y);
-        t->hit(o,r,I,v,ls,0);
-        cout<<int(255.0*I.x)<<' '<<int(255.0*I.y)<<' '<<int(255.0*I.z)<<' ';
+        t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
+	cout<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
       cout<<endl;
     }
