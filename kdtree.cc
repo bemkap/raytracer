@@ -24,7 +24,7 @@ template<>plane find_plane<SPATIAL>(obj*o,unsigned d,vector<long>&t,aabb b){
   return p;
 }
 template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&t,aabb b){
-  long i_mn; double c_mn,C;
+  size_t i_mn; double c_mn,C;
   double t_cost=t.size(),i_cost=1;
   for(size_t i=0; i<t.size(); ++i){
     double p=o->max3(t[i],d);
@@ -43,7 +43,7 @@ template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&t,aabb b){
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
   if(d<20&&t.size()>10){
-    split=find_plane<SPATIAL>(o,d,t,b);
+    split=find_plane<SAH>(o,d,t,b);
     aabb lb,rb; lb=rb=b;
     lb.t[d%3]=rb.f[d%3]=split.p[d%3];
     vector<long> lt,rt;
