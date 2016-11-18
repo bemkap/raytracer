@@ -6,7 +6,7 @@
 using namespace glm;
 
 struct aabb     { dvec3 f,t; };
-struct plane    { dvec3 p,n; };
+struct plane    { double e; unsigned k; };
 struct triangle { dvec3 p,q,r; };
 struct light    { dvec3 p,c; double ia,id,is; };
 
@@ -18,7 +18,6 @@ struct ray {
   void direct(double,double);
   void direct(dvec3&);
   bool hit(const aabb&,double&,double&);
-  bool hit(const plane&,dvec3&);
   bool hit(const triangle&,dvec3&,dvec3&);
 };
 

@@ -13,8 +13,8 @@ class kdtree {public:
   aabb bounds;
   kdtree*left,*right;
   kdtree(obj*,aabb,unsigned,vector<long>&); ~kdtree();
-  bool leafp();
-  bool hit(obj*,ray,dvec3&,dvec3&,vector<light>&ls,int);
+  bool leaf_p();
+  bool hit(obj*,ray,dvec3&,dvec3&,vector<light>&,int);
 };
 
 struct elem {

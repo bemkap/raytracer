@@ -1,6 +1,6 @@
 CC=g++
-CPPFLAGS= -Wall -std=c++11 -pg -ggdb
-LDLIBS= -lm -pg
+CPPFLAGS= -Wall -std=c++11 -ggdb
+LDLIBS= -lm
 
 main: main.o kdtree.o obj.o prim.o mtl.o
 main.o: main.cc

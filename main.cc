@@ -1,3 +1,4 @@
+#include<cstdio>
 #include<iostream>
 #include<fstream>
 #include"kdtree.hh"
@@ -36,8 +37,8 @@ int main(int argc,char*argv[]){
         dvec3 I(0,0,0);
         r2s(double(i),double(j),x,y,90.0);
         r.direct(x,y);
-        t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
-	cout<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
+  	t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
+  	cout<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
       cout<<endl;
     }
