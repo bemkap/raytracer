@@ -6,6 +6,8 @@
 using namespace std;
 using namespace glm;
 
+struct elem;
+
 class kdtree {public:
   vector<long> ts;
   plane split;
