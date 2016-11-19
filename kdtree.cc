@@ -14,6 +14,15 @@ constexpr int MAX_DEPTH=0;
 
 inline double SA(aabb b){return 2*(b.t[0]-b.f[0])*(b.t[1]-b.f[1])*(b.t[2]-b.f[2]);}
 inline double C(double Pl,double Pr,double Nl,double Nr){return Pl*Nl+Pr*Nr;}
+inline void perfect(triangle tr,aabb b,plane ps[6]){
+  ps[0].e=std::max(b.f.x,std::min(tr.p.x,std::min(tr.q.x,tr.r.x)));
+  ps[1].e=std::min(b.t.x,std::max(tr.p.x,std::max(tr.q.x,tr.r.x)));
+  ps[2].e=std::max(b.f.y,std::min(tr.p.y,std::min(tr.q.y,tr.r.y)));
+  ps[3].e=std::min(b.f.y,std::max(tr.p.y,std::max(tr.q.y,tr.r.y)));
+  ps[4].e=std::max(b.f.z,std::min(tr.p.z,std::min(tr.q.z,tr.r.z)));
+  ps[5].e=std::min(b.f.z,std::max(tr.p.z,std::max(tr.q.z,tr.r.z)));
+}
+
 double SAH(plane&p,aabb&V,double Nl,double Nr,double Np){
   aabb Vl=V,Vr=V;
   Vl.t[p.k]=Vr.f[p.k]=p.e;
@@ -33,23 +42,36 @@ template<>plane find_plane<SPATIAL>(obj*o,unsigned d,vector<long>&t,aabb b,doubl
   return {(mn+mx)/2,d%3};
 }
 template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&ts,aabb b,double&C){
-  double c_mn=std::numeric_limits<double>::infinity(),sp=0;
-  double p[2],l_P,r_P;
-  aabb bl=b,br=b;
-  sort(ts.begin(),ts.end(),[o,d](long a,long b){return o->min3(a,d%3)<o->min3(b,d%3);});
-  for(size_t i=0; i<ts.size(); ++i){
-    p[0]=o->min3(ts[i],d);
-    p[1]=o->max3(ts[i],d);
-    for(int j=0; j<2; ++j){
-      bl.t[d%3]=br.f[d%3]=p[j];
-      l_P=SA(bl)/SA(b);
-      r_P=SA(br)/SA(b);
-      C=SA(b)==0?0:0.3*(l_P*i+r_P*(ts.size()-i));
-      if(C<c_mn){c_mn=C; sp=p[j];}
+  // double c_mn=std::numeric_limits<double>::infinity(),sp=0;
+  // double p[2],l_P,r_P;
+  // aabb bl=b,br=b;
+  // sort(ts.begin(),ts.end(),[o,d](long a,long b){return o->min3(a,d%3)<o->min3(b,d%3);});
+  // for(size_t i=0; i<ts.size(); ++i){
+  //   p[0]=o->min3(ts[i],d);
+  //   p[1]=o->max3(ts[i],d);
+  //   for(int j=0; j<2; ++j){
+  //     bl.t[d%3]=br.f[d%3]=p[j];
+  //     l_P=SA(bl)/SA(b);
+  //     r_P=SA(br)/SA(b);
+  //     C=SA(b)==0?0:0.3*(l_P*i+r_P*(ts.size()-i));
+  //     if(C<c_mn){c_mn=C; sp=p[j];}
+  //   }
+  // }
+  // C=c_mn;
+  // return {sp,d%3};
+  aabb Vl,Vr; plane p_mn;
+  vector<long> Tl,Tr,Tp; plane ps[6];
+  ps[0].k=ps[1].k=0; ps[2].k=ps[3].k=0; ps[4].k=ps[5].k=2;
+  for(auto t:ts){
+    double c_mn=std::numeric_limits<double>::infinity(),c;
+    for(auto p:perfect(o->f2t(t),b)){
+      Vl.t[p.k]=Vr.f[p.k]=p.e;
+      classify(o,ts,Vl,Vr,p,Tl,Tr,Tp);
+      c=SAH(p,b,Tl.size(),Tr.size(),Tp.size());
+      if(c<c_mn){c_mn=c; p_mn=p;}
     }
   }
-  C=c_mn;
-  return {sp,d%3};
+  return p;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
@@ -60,8 +82,8 @@ kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
     lb.t[d%3]=rb.f[d%3]=split.e;
     vector<long> lt,rt;
     for(auto i:t){
-      if(o->max3(i,d)>=split.e) rt.push_back(i);
-      if(o->min3(i,d)<=split.e) lt.push_back(i);
+      if(o->max3(i,split.k)>=split.e) rt.push_back(i);
+      if(o->min3(i,split.k)<=split.e) lt.push_back(i);
     }
     left =new kdtree(o,lb,d+1,lt);
     right=new kdtree(o,rb,d+1,rt);
