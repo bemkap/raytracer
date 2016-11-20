@@ -13,14 +13,15 @@ void r2s(double i,double j,double&x,double&y,double fov){
   y=(1-2*((j+0.5)/double(HEIGHT)))*t;
 }
 int main(int argc,char*argv[]){
-  if(argc<2) return 1;
+  if(argc<3) return 1;
   string in(argv[1]);
-  cout<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
+  ofstream out(argv[2]);
+  out<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b; dvec3 v;
   vector<light> ls;
-  ls.push_back({.p={2,2,2},.c={0,0,0},.ia=.9,.id=.3,.is=.3});
-  //ray r({-5,5,5});
-  ray r({10,10,10});
+  ls.push_back({.p={10,10,10},.c={0,0,0},.ia=.9,.id=.3,.is=.3});
+  ray r({5,5,-5});
+  // ray r({10,10,10});
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){
@@ -32,18 +33,20 @@ int main(int argc,char*argv[]){
         b.t[i]=std::max(b.t[i],v[i]);
       }
     kdtree*t=new kdtree(o,b,0,ts);
+    cout<<"done"<<endl;
     for(int i=0; i<WIDTH; ++i){
       for(int j=0; j<HEIGHT; ++j){
         dvec3 I(0,0,0);
         r2s(double(i),double(j),x,y,90.0);
         r.direct(x,y);
     	t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
-    	cout<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
+    	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
-      cout<<endl;
+      out<<endl;
     }
     delete t;
   }
   delete o;
+  out.close();
   return 0;
 }

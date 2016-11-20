@@ -10,7 +10,7 @@ using namespace std;
 using namespace glm;
 
 enum method {SPATIAL,SAH};
-constexpr int MAX_DEPTH=0;
+constexpr int MAX_DEPTH=1;
 
 inline double SA(aabb b){return 2*(b.t[0]-b.f[0])*(b.t[1]-b.f[1])*(b.t[2]-b.f[2]);}
 inline double C(double Pl,double Pr,double Nl,double Nr){return Pl*Nl+Pr*Nr;}
@@ -22,8 +22,20 @@ inline void perfect(triangle tr,aabb b,plane ps[6]){
   ps[4].e=std::max(b.f.z,std::min(tr.p.z,std::min(tr.q.z,tr.r.z)));
   ps[5].e=std::min(b.f.z,std::max(tr.p.z,std::max(tr.q.z,tr.r.z)));
 }
-
-double SAH(plane&p,aabb&V,double Nl,double Nr,double Np){
+void classify(obj*o,vector<long>&ts,aabb&Vl,aabb&Vr,plane&p,size_t&Tl,size_t&Tr,size_t&Tp){
+  Tl=Tr=Tp=0;
+  for(auto t:ts){
+    triangle tr=f2t(o,t);
+    double mn=std::min(std::min(tr.p[p.k],tr.q[p.k]),tr.r[p.k]);
+    double mx=std::max(std::max(tr.p[p.k],tr.q[p.k]),tr.r[p.k]);
+    if(mn==mx&&mn==p.e) Tp++;
+    else{
+      if(mn<p.e) Tl++;
+      if(mx>p.e) Tr++;
+    }
+  }
+}
+double sah(plane&p,aabb&V,double Nl,double Nr,double Np){
   aabb Vl=V,Vr=V;
   Vl.t[p.k]=Vr.f[p.k]=p.e;
   double Pl=SA(Vl)/SA(V);
@@ -34,10 +46,10 @@ double SAH(plane&p,aabb&V,double Nl,double Nr,double Np){
 }
 template<method M>plane find_plane(obj*,unsigned,vector<long>&,aabb,double&);
 template<>plane find_plane<SPATIAL>(obj*o,unsigned d,vector<long>&t,aabb b,double&C){
-  double mn,mx; mn=mx=o->f2v(t[0],0)[d%3];
+  double mn,mx; mn=mx=f2v(o,t[0],0)[d%3];
   for(auto i:t){
-    mn=std::min(mn,o->min3(i,d));
-    mx=std::max(mx,o->max3(i,d));
+    mn=std::min(mn,min3(o,i,d));
+    mx=std::max(mx,max3(o,i,d));
   }
   return {(mn+mx)/2,d%3};
 }
@@ -60,30 +72,31 @@ template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&ts,aabb b,double&C
   // C=c_mn;
   // return {sp,d%3};
   aabb Vl,Vr; plane p_mn;
-  vector<long> Tl,Tr,Tp; plane ps[6];
+  size_t Tl,Tr,Tp; plane ps[6];
   ps[0].k=ps[1].k=0; ps[2].k=ps[3].k=0; ps[4].k=ps[5].k=2;
   for(auto t:ts){
     double c_mn=std::numeric_limits<double>::infinity(),c;
-    for(auto p:perfect(o->f2t(t),b)){
+    perfect(f2t(o,t),b,ps);
+    for(auto p:ps){
       Vl.t[p.k]=Vr.f[p.k]=p.e;
       classify(o,ts,Vl,Vr,p,Tl,Tr,Tp);
-      c=SAH(p,b,Tl.size(),Tr.size(),Tp.size());
+      c=sah(p,b,Tl,Tr,Tp);
       if(c<c_mn){c_mn=c; p_mn=p;}
     }
   }
-  return p;
+  return p_mn;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
   double C=0;
   if(d<20&&t.size()>15){
-    split=find_plane<SPATIAL>(o,d,t,b,C);
+    split=find_plane<SAH>(o,d,t,b,C);
     aabb lb,rb; lb=rb=b;
     lb.t[d%3]=rb.f[d%3]=split.e;
     vector<long> lt,rt;
     for(auto i:t){
-      if(o->max3(i,split.k)>=split.e) rt.push_back(i);
-      if(o->min3(i,split.k)<=split.e) lt.push_back(i);
+      if(max3(o,i,split.k)>=split.e) rt.push_back(i);
+      if(min3(o,i,split.k)<=split.e) lt.push_back(i);
     }
     left =new kdtree(o,lb,d+1,lt);
     right=new kdtree(o,rb,d+1,rt);
@@ -118,20 +131,21 @@ bool kdtree::hit(obj*o,ray r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
       }
     }
     for(auto i:c.node->ts){
-      triangle tr=o->f2t(i);
+      triangle tr=f2t(o,i);
       if(r.hit(tr,v,bc)){
-    	try{n=bc.x*o->f2n(i,0)+bc.y*o->f2n(i,1)+bc.z*o->f2n(i,2);}
+    	try{n=bc.x*f2n(o,i,0)+bc.y*f2n(o,i,1)+bc.z*f2n(o,i,2);}
     	catch(int e){n=r.o-v;}
-    	double sh=1;
-    	for(auto l:ls){
-    	  dvec3 lv=l.p-v,J,w;
-    	  ray r1(v+lv*0.001); r1.direct(lv);
-    	  if(hit(o,r1,J,w,ls,MAX_DEPTH)&&length(l.p-w)<length(lv)) sh=0;
-    	}
-    	I+=pow(0.2,rtd)*o->fs[i].m->I(ls,v,n,r.o,sh);
+        double sh=1;
+        if(rtd<MAX_DEPTH)
+          for(auto l:ls){
+            dvec3 lv=l.p-v,J,w;
+            ray r1(v+lv*0.001); r1.direct(lv);
+            if(hit(o,r1,J,w,ls,MAX_DEPTH)&&length(l.p-w)<length(lv)) sh=0;
+          }
+    	I+=pow(0.1,rtd)*o->fs[i].m->I(ls,v,n,r.o,sh);
     	if(rtd<MAX_DEPTH){
     	  dvec3 N=normalize(n),d=r.d-2.0*dot(r.d,N)*N;
-    	  ray r2(v+d*0.001); r2.d=d;
+    	  ray r2(v+d*0.001); r2.direct(d);
     	  hit(o,r2,I,v,ls,rtd+1);
     	}
     	return true;

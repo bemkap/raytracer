@@ -38,14 +38,3 @@ obj::obj(string&fn){
   in.close();
 }
 obj::~obj(){for(auto m:mm) delete m.second;}
-dvec3 obj::f2v(long i,int v){return vs[fs[i][3*(v%3)]-1];}
-dvec3 obj::f2n(long i,int v){
-  if(-1==fs[i][2+3*(v%3)]) throw -1;
-  return ns[fs[i][2+3*(v%3)]-1];}
-triangle obj::f2t(long i){return {f2v(i,0),f2v(i,1),f2v(i,2)};}
-double obj::min3(long i,unsigned d){
-  return std::min(f2v(i,0)[d%3],std::min(f2v(i,1)[d%3],f2v(i,2)[d%3]));
-}
-double obj::max3(long i,unsigned d){
-  return std::max(f2v(i,0)[d%3],std::max(f2v(i,1)[d%3],f2v(i,2)[d%3]));
-}
