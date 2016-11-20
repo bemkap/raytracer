@@ -4,7 +4,7 @@
 #include"kdtree.hh"
 #include"obj.hh"
 
-constexpr int WIDTH=500,HEIGHT=500;
+constexpr int WIDTH=300,HEIGHT=300;
 constexpr double r=double(WIDTH)/double(HEIGHT);
 
 void r2s(double i,double j,double&x,double&y,double fov){
@@ -33,8 +33,9 @@ int main(int argc,char*argv[]){
         b.t[i]=std::max(b.t[i],v[i]);
       }
     kdtree*t=new kdtree(o,b,0,ts);
-    cout<<"done"<<endl;
+    cout<<"kdtree"<<endl;
     for(int i=0; i<WIDTH; ++i){
+      if(0==i%(WIDTH/10)) cout<<"column "<<i<<endl;
       for(int j=0; j<HEIGHT; ++j){
         dvec3 I(0,0,0);
         r2s(double(i),double(j),x,y,90.0);
