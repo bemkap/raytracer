@@ -20,13 +20,13 @@ int main(int argc,char*argv[]){
   aabb b; dvec3 v;
   vector<light> ls;
   ls.push_back({.p={10,10,10},.c={0,0,0},.ia=.9,.id=.3,.is=.3});
-  ray r({5,5,-5});
-  // ray r({10,10,10});
+  ///ray r({5,5,-5});
+  ray r({10,10,10});
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){
     vector<long> ts(o->fs.size());
-    for(unsigned long i=0; i<ts.size(); ++i) ts[i]=i;
+    for(size_t i=0; i<ts.size(); ++i) ts[i]=i;
     for(auto v:o->vs)
       for(int i=0; i<3; ++i){
         b.f[i]=std::min(b.f[i],v[i]);

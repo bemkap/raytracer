@@ -33,32 +33,27 @@ template<>plane find_plane<SPATIAL>(obj*o,unsigned d,vector<long>&t,aabb b,doubl
   return {(mn+mx)/2,d%3};
 }
 template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&ts,aabb b,double&C){
-  aabb Vl,Vr; plane p_mn,p[2];
-  double c, c_mn=std::numeric_limits<double>::infinity();
+  aabb Vl,Vr; plane p_mn,p;
+  double c,c_mn=std::numeric_limits<double>::infinity();
   for(int k=0; k<3; ++k){
     sort(ts.begin(),ts.end(),[o,k](long a,long b){return min3(o,a,k)<=min3(o,b,k);});
-    size_t Nr=0,Np=0,Nl=ts.size();
+    size_t Nt;
     for(size_t i=0; i<ts.size(); ++i){
-      p[0].k=k; p[0].e=min3(o,ts[i],k);
-      p[1].k=k; p[1].e=max3(o,ts[i],k);
-      while(i<ts.size()&&)
-      
-      for(int j=0; j<2; ++j){
-        c=sah(p[j],b,i,ts.size()-i,0);
-        if(c<c_mn){c_mn=c; p_mn=p[j];}
-      }
+      Nt=0;
+      p.k=k; p.e=min3(o,ts[i],k);
+      size_t j;
+      for(j=i; min3(o,ts[j],k)==p.e&&j<ts.size(); ++j)
+	if(min3(o,ts[j],k)>=max3(o,ts[j],k)) Nt++;
+      c=sah(p,b,j,ts.size()-j-Nt,Nt);
+      if(c<c_mn){c_mn=c; p_mn=p;}
+      Nt=0;
+      p.k=k; p.e=max3(o,ts[i],k);
+      for(j=i; p.e>min3(o,ts[j],k)&&j<ts.size(); ++j)
+	if(min3(o,ts[j],k)>=max3(o,ts[j],k)) Nt++;
+      c=sah(p,b,j,ts.size()-j-Nt,Nt);
+      if(c<c_mn){c_mn=c; p_mn=p;}
     }
   }
-  // for(auto t:ts){
-  //   double c_mn=std::numeric_limits<double>::infinity(),c;
-  //   perfect(f2t(o,t),b,ps);
-  //   for(int i=0; i<6; ++i){
-  //     Vl.t[ps[i].k]=Vr.f[ps[i].k]=ps[i].e;
-  //     classify(o,ts,Vl,Vr,ps[i],Tl,Tr,Tp);
-  //     c=sah(ps[i],b,Tl,Tr,Tp);
-  //     if(c<c_mn){c_mn=c; p_mn=ps[i];}
-  //   }
-  // }
   return p_mn;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
