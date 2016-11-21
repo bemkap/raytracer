@@ -38,21 +38,21 @@ template<>plane find_plane<SAH>(obj*o,unsigned d,vector<long>&ts,aabb b,double&C
   for(int k=0; k<3; ++k){
     sort(ts.begin(),ts.end(),[o,k](long a,long b){return min3(o,a,k)<=min3(o,b,k);});
     size_t Nt;
-    for(size_t i=0; i<ts.size(); ++i){
-      Nt=0;
-      p.k=k; p.e=min3(o,ts[i],k);
-      size_t j;
-      for(j=i; min3(o,ts[j],k)==p.e&&j<ts.size(); ++j)
-	if(min3(o,ts[j],k)>=max3(o,ts[j],k)) Nt++;
-      c=sah(p,b,j,ts.size()-j-Nt,Nt);
-      if(c<c_mn){c_mn=c; p_mn=p;}
-      Nt=0;
-      p.k=k; p.e=max3(o,ts[i],k);
-      for(j=i; p.e>min3(o,ts[j],k)&&j<ts.size(); ++j)
-	if(min3(o,ts[j],k)>=max3(o,ts[j],k)) Nt++;
-      c=sah(p,b,j,ts.size()-j-Nt,Nt);
-      if(c<c_mn){c_mn=c; p_mn=p;}
-    }
+    // for(size_t i=0; i<ts.size(); ++i){
+    //   Nt=0;
+    //   p.k=k; p.e=min3(o,ts[i],k);
+    //   size_t j;
+    //   for(j=i; min3(o,ts[j],k)==p.e&&j<ts.size(); ++j)
+    // 	if(min3(o,ts[j],k)>=max3(o,ts[j],k)) Nt++;
+    //   c=sah(p,b,j,ts.size()-j-Nt,Nt);
+    //   if(c<c_mn){c_mn=c; p_mn=p;}
+    //   Nt=0;
+    //   p.k=k; p.e=max3(o,ts[i],k);
+    //   for(j=i; p.e>min3(o,ts[j],k)&&j<ts.size(); ++j)
+    // 	if(min3(o,ts[j],k)>=max3(o,ts[j],k)) Nt++;
+    //   c=sah(p,b,j,ts.size()-j-Nt,Nt);
+    //   if(c<c_mn){c_mn=c; p_mn=p;}
+    // }
   }
   return p_mn;
 }

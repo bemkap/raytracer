@@ -1,3 +1,5 @@
+#include<algorithm>
+using namespace std;
 #include<cstdio>
 #include<iostream>
 #include<fstream>
@@ -27,25 +29,27 @@ int main(int argc,char*argv[]){
   if(GOOD==o->st){
     vector<long> ts(o->fs.size());
     for(size_t i=0; i<ts.size(); ++i) ts[i]=i;
-    for(auto v:o->vs)
-      for(int i=0; i<3; ++i){
-        b.f[i]=std::min(b.f[i],v[i]);
-        b.t[i]=std::max(b.t[i],v[i]);
-      }
-    kdtree*t=new kdtree(o,b,0,ts);
-    cout<<"kdtree"<<endl;
-    for(int i=0; i<WIDTH; ++i){
-      if(0==i%(WIDTH/10)) cout<<"column "<<i<<endl;
-      for(int j=0; j<HEIGHT; ++j){
-        dvec3 I(0,0,0);
-        r2s(double(i),double(j),x,y,90.0);
-        r.direct(x,y);
-    	t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
-    	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
-      }
-      out<<endl;
-    }
-    delete t;
+    //sort(ts.begin(),ts.end(),[o](long a,long b){return min3(o,a,0)<=min3(o,b,0);});
+    sort(ts.begin(),ts.end(),[o](long a,long b){return min3(o,a,1)<=min3(o,b,1);});
+    // for(auto v:o->vs)
+    //   for(int i=0; i<3; ++i){
+    //     b.f[i]=std::min(b.f[i],v[i]);
+    //     b.t[i]=std::max(b.t[i],v[i]);
+    //   }
+    // kdtree*t=new kdtree(o,b,0,ts);
+    // cout<<"kdtree"<<endl;
+    // for(int i=0; i<WIDTH; ++i){
+    //   if(0==i%(WIDTH/10)) cout<<"column "<<i<<endl;
+    //   for(int j=0; j<HEIGHT; ++j){
+    //     dvec3 I(0,0,0);
+    //     r2s(double(i),double(j),x,y,90.0);
+    //     r.direct(x,y);
+    // 	t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
+    // 	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
+    //   }
+    //   out<<endl;
+    // }
+    // delete t;
   }
   delete o;
   out.close();

@@ -23,9 +23,7 @@ class obj {public:
 };
 
 inline dvec3 f2v(obj*o,long i,int v){return o->vs[o->fs[i][3*(v%3)]-1];}
-inline dvec3 f2n(obj*o,long i,int v){
-  return o->ns[o->fs[i][2+3*(v%3)]-1];
-}
+inline dvec3 f2n(obj*o,long i,int v){return o->ns[o->fs[i][2+3*(v%3)]-1];}
 inline triangle f2t(obj*o,long i){return {f2v(o,i,0),f2v(o,i,1),f2v(o,i,2)};}
 inline double min3(obj*o,long i,unsigned d){
   return std::min(f2v(o,i,0)[d%3],std::min(f2v(o,i,1)[d%3],f2v(o,i,2)[d%3]));
@@ -33,9 +31,3 @@ inline double min3(obj*o,long i,unsigned d){
 inline double max3(obj*o,long i,unsigned d){
   return std::max(f2v(o,i,0)[d%3],std::max(f2v(o,i,1)[d%3],f2v(o,i,2)[d%3]));
 }
-
-// inline dvec3 f2v(obj*,long,int);
-// inline dvec3 f2n(obj*,long,int);
-// inline triangle f2t(obj*,long);
-// inline double min3(obj*,long,unsigned);
-// inline double max3(obj*,long,unsigned);
