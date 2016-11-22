@@ -8,26 +8,29 @@
 using namespace glm;
 using namespace std;
 
-struct face {
+enum VERT {V0=0,V1=3,V2=6};
+enum TEXT {T0=1,T1=4,T2=7};
+enum NORM {N0=2,N1=5,N2=8};
+
+class face {public:
   mat*m;
   union { long a[9]; struct { long v0,t0,n0, v1,t1,n1, v2,t2,n2; };};
   long operator[](int);
 };
 
-class obj {public:
+class obj {
+  vector<dvec3> vts,ns;
+public:
   state st;
-  vector<dvec3> vs,vts,ns;
+  vector<dvec3> vs;
   vector<face> fs;
   map<string,mat*> mm;
   obj(string&); ~obj();
+  double get_vert(long,VERT,AXIS);
+  dvec3 get_vert(long,VERT);
+  double get_norm(long,NORM,AXIS);
+  dvec3 get_norm(long,NORM);
+  double min3(long,AXIS);
+  double max3(long,AXIS);
+  triangle get_tri(long);
 };
-
-inline dvec3 f2v(obj*o,long i,int v){return o->vs[o->fs[i][3*(v%3)]-1];}
-inline dvec3 f2n(obj*o,long i,int v){return o->ns[o->fs[i][2+3*(v%3)]-1];}
-inline triangle f2t(obj*o,long i){return {f2v(o,i,0),f2v(o,i,1),f2v(o,i,2)};}
-inline double min3(obj*o,long i,unsigned d){
-  return std::min(f2v(o,i,0)[d%3],std::min(f2v(o,i,1)[d%3],f2v(o,i,2)[d%3]));
-}
-inline double max3(obj*o,long i,unsigned d){
-  return std::max(f2v(o,i,0)[d%3],std::max(f2v(o,i,1)[d%3],f2v(o,i,2)[d%3]));
-}

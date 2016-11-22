@@ -25,7 +25,7 @@ bool ray::hit(const aabb&b,double&in,double&out){
   }
   return (out>=in)&&(out>0);
 }
-bool ray::hit(const triangle&tr,dvec3&i,dvec3&c){
+bool ray::hit(triangle&tr,dvec3&i,dvec3&c){
   dvec3 e1,e2;
   dvec3 P,Q,T;
   double det,inv_det,u,v,t;

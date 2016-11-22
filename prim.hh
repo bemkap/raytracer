@@ -5,8 +5,10 @@
 #include<glm/vec3.hpp>
 using namespace glm;
 
+enum AXIS {X,Y,Z};
+
 struct aabb     { dvec3 f,t; };
-struct plane    { double e; unsigned k; };
+struct plane    { double e; AXIS k; };
 struct triangle { dvec3 p,q,r; };
 struct light    { dvec3 p,c; double ia,id,is; };
 
@@ -18,7 +20,7 @@ struct ray {
   void direct(double,double);
   void direct(dvec3&);
   bool hit(const aabb&,double&,double&);
-  bool hit(const triangle&,dvec3&,dvec3&);
+  bool hit(triangle&,dvec3&,dvec3&);
 };
 
 void saturate(dvec3&I);
