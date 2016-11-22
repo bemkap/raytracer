@@ -8,7 +8,7 @@
 using namespace std;
 using namespace glm;
 
-constexpr int MAX_DEPTH=0;
+constexpr int MAX_DEPTH=1;
 
 inline double SA(aabb b){return 2*((b.t.x-b.f.x)*(b.t.y-b.f.y)+
 				   (b.t.y-b.f.y)*(b.t.z-b.f.z)+
@@ -27,10 +27,11 @@ double sah(plane&p,aabb&V,double Nl,double Nr,double Np){
     return std::min(Cl,Cr)*(1-0.2*(Nl==0||Nr==0));
   }
 }
-plane find_plane(obj*o,vector<long>&ts,aabb b,double&c_mn){
+plane find_plane(obj*o,unsigned d,vector<long>&ts,aabb b,double&c_mn){
   aabb Vl,Vr; plane p_mn,p;
   double c; c_mn=std::numeric_limits<double>::infinity();
-  for(int k=0; k<3; ++k){
+  //for(int k=0; k<3; ++k){
+    unsigned k=d%3;
     vector<pair<double,int>> u;
     for(auto t:ts){
       double mn=o->min3(t,AXIS(k));
@@ -53,13 +54,13 @@ plane find_plane(obj*o,vector<long>&ts,aabb b,double&c_mn){
       if(c<c_mn){c_mn=c; p_mn=p;}
       Nl+=p2+p1; Np=0;
     }
-  }
+    //}
   return p_mn;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
   double C;
-  split=find_plane(o,t,b,C);
+  split=find_plane(o,d,t,b,C);
   if(d>=20||t.size()<=15) for(auto i:t) ts.push_back(i);
   //if(C>1.5*t.size()) for(auto i:t) ts.push_back(i);
   else{
@@ -106,8 +107,7 @@ bool kdtree::hit(obj*o,ray r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
       for(auto i:c.node->ts){
 	triangle tr=o->get_tri(i);
 	if(r.hit(tr,v,bc)){
-	  try{n=bc.x*o->get_norm(i,N0)+bc.y*o->get_norm(i,N1)+bc.z*o->get_norm(i,N2);}
-	  catch(int e){n=r.o-v;}
+	  n=bc.x*o->get_norm(i,N0)+bc.y*o->get_norm(i,N1)+bc.z*o->get_norm(i,N2);
 	  double sh=1;
 	  if(rtd<MAX_DEPTH)
 	    for(auto l:ls){
