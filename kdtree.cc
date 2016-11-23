@@ -31,30 +31,30 @@ plane find_plane(obj*o,unsigned d,vector<long>&ts,aabb b,double&c_mn){
   aabb Vl,Vr; plane p_mn,p;
   double c; c_mn=std::numeric_limits<double>::infinity();
   //for(int k=0; k<3; ++k){
-    unsigned k=d%3;
-    vector<pair<double,int>> u;
-    for(auto t:ts){
-      double mn=o->min3(t,AXIS(k));
-      double mx=o->max3(t,AXIS(k));
-      if(mn==mx) u.push_back(pair<double,int>(mn,1));
-      else{u.push_back(pair<double,int>(mn,2)); u.push_back(pair<double,int>(mx,0));}
-    }      
-    sort(u.begin(),u.end(),[](pair<double,int> pa,pair<double,int> pb){
-	return pa.first<pb.first||((pa.first==pb.first)&&(pa.second<pb.second));
-      });
-    size_t Nr=ts.size(),Np=0,Nl=0;
-    for(size_t i=0; i<u.size(); ++i){
-      p.k=AXIS(k); p.e=u[i].first;
-      size_t p0=0,p1=0,p2=0;
-      while(i<u.size()&&p.e>=u[i].first&&u[i].second==0){++i; ++p0;}
-      while(i<u.size()&&p.e>=u[i].first&&u[i].second==1){++i; ++p1;}
-      while(i<u.size()&&p.e>=u[i].first&&u[i].second==2){++i; ++p2;}
-      Np=p1; Nr-=p1+p0;
-      c=sah(p,b,Nl,Nr,Np);
-      if(c<c_mn){c_mn=c; p_mn=p;}
-      Nl+=p2+p1; Np=0;
-    }
-    //}
+  unsigned k=d%3;
+  vector<pair<double,int>> u;
+  for(auto t:ts){
+    double mn=o->min3(t,AXIS(k));
+    double mx=o->max3(t,AXIS(k));
+    if(mn==mx) u.push_back(pair<double,int>(mn,1));
+    else{u.push_back(pair<double,int>(mn,2)); u.push_back(pair<double,int>(mx,0));}
+  }      
+  sort(u.begin(),u.end(),[](pair<double,int> pa,pair<double,int> pb){
+      return pa.first<pb.first||((pa.first==pb.first)&&(pa.second<pb.second));
+    });
+  size_t Nr=ts.size(),Np=0,Nl=0;
+  for(size_t i=0; i<u.size(); ++i){
+    p.k=AXIS(k); p.e=u[i].first;
+    size_t p0=0,p1=0,p2=0;
+    while(i<u.size()&&p.e>=u[i].first&&u[i].second==0){++i; ++p0;}
+    while(i<u.size()&&p.e>=u[i].first&&u[i].second==1){++i; ++p1;}
+    while(i<u.size()&&p.e>=u[i].first&&u[i].second==2){++i; ++p2;}
+    Np=p1; Nr-=p1+p0;
+    c=sah(p,b,Nl,Nr,Np);
+    if(c<c_mn){c_mn=c; p_mn=p;}
+    Nl+=p2+p1; Np=0;
+  }
+  //}
   return p_mn;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
