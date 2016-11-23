@@ -4,7 +4,7 @@
 #include"kdtree.hh"
 #include"obj.hh"
 
-constexpr int WIDTH=1000,HEIGHT=1000;
+constexpr int WIDTH=500,HEIGHT=500;
 constexpr double r=double(WIDTH)/double(HEIGHT);
 
 void r2s(double i,double j,double&x,double&y,double fov){
@@ -19,9 +19,9 @@ int main(int argc,char*argv[]){
   out<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b; dvec3 v;
   vector<light> ls;
-  ls.push_back({.p={10,10,10},.c={0,0,0},.ia=.9,.id=.3,.is=.3});
-  //ray r({5,5,-5});
-  ray r({8,8,8});
+  ls.push_back({.p={1,1,-1},.c={0,0,0},.ia=.9,.id=.9,.is=.9});
+  ray r({1,1,-1});
+  // ray r({8,8,8});
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){

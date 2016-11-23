@@ -30,7 +30,7 @@ double sah(plane&p,aabb&V,double Nl,double Nr,double Np){
 plane find_plane(obj*o,unsigned d,vector<long>&ts,aabb b,double&c_mn){
   aabb Vl,Vr; plane p_mn,p;
   double c; c_mn=std::numeric_limits<double>::infinity();
-  //for(int k=0; k<3; ++k){
+  // for(int k=0; k<3; ++k){
   unsigned k=d%3;
   vector<pair<double,int>> u;
   for(auto t:ts){
@@ -54,7 +54,7 @@ plane find_plane(obj*o,unsigned d,vector<long>&ts,aabb b,double&c_mn){
     if(c<c_mn){c_mn=c; p_mn=p;}
     Nl+=p2+p1; Np=0;
   }
-  //}
+  // }
   return p_mn;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
