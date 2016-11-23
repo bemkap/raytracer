@@ -19,8 +19,8 @@ int main(int argc,char*argv[]){
   out<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b; dvec3 v;
   vector<light> ls;
-  ls.push_back({.p={1,1,-1},.c={0,0,0},.ia=.9,.id=.9,.is=.9});
-  ray r({1,1,-1});
+  ls.push_back({.p={9,5,-7},.c={0,0,0},.ia=.9,.id=.3,.is=.3});
+  ray r({5,5,-5});
   // ray r({8,8,8});
   obj*o=new obj(in);
   double x,y;

@@ -8,71 +8,86 @@
 using namespace std;
 using namespace glm;
 
-constexpr int MAX_DEPTH=1;
+constexpr int MAX_DEPTH=0;
+struct event {double e; unsigned ty; size_t t;};
+struct cost {double c; unsigned s;};
 
 inline double SA(aabb b){return 2*((b.t.x-b.f.x)*(b.t.y-b.f.y)+
 				   (b.t.y-b.f.y)*(b.t.z-b.f.z)+
 				   (b.t.z-b.f.z)*(b.t.x-b.f.x));}
 inline double C(double Pl,double Pr,double Nl,double Nr){return 1.5*(Pl*Nl+Pr*Nr);}
-double sah(plane&p,aabb&V,double Nl,double Nr,double Np){
+cost sah(plane&p,aabb&V,double Nl,double Nr,double Np){
   aabb Vl=V,Vr=V;
   Vl.t[p.k]=Vr.f[p.k]=p.e;
   double SAV=SA(V);
-  if(SAV<=0) return 0;
+  if(SAV<=0) return {0,2};
   else{
     double Pl=SA(Vl)/SAV;
     double Pr=SA(Vr)/SAV;
     double Cl=C(Pl,Pr,Nl+Np,Nr);
     double Cr=C(Pl,Pr,Nl,Nr+Np);
-    return std::min(Cl,Cr)*(1-0.2*(Nl==0||Nr==0));
+    if(Cl<Cr) return {Cl*(1-0.2*(Nl==0||Nr==0)),0};
+    else return {Cr*(1-0.2*(Nl==0||Nr==0)),1};
   }
 }
-plane find_plane(obj*o,unsigned d,vector<long>&ts,aabb b,double&c_mn){
+plane find_plane(obj*o,unsigned d,vector<long>&ts,aabb b,double&c_mn,vector<event>&u,unsigned&s){
   aabb Vl,Vr; plane p_mn,p;
-  double c; c_mn=std::numeric_limits<double>::infinity();
-  // for(int k=0; k<3; ++k){
+  cost c; c_mn=std::numeric_limits<double>::infinity();
   unsigned k=d%3;
-  vector<pair<double,int>> u;
-  for(auto t:ts){
-    double mn=o->min3(t,AXIS(k));
-    double mx=o->max3(t,AXIS(k));
-    if(mn==mx) u.push_back(pair<double,int>(mn,1));
-    else{u.push_back(pair<double,int>(mn,2)); u.push_back(pair<double,int>(mx,0));}
+  for(size_t i=0; i<ts.size(); ++i){
+    double mn=o->min3(ts[i],AXIS(k));
+    double mx=o->max3(ts[i],AXIS(k));
+    if(mn==mx) u.push_back({mn,1,i});
+    else{u.push_back({mn,2,i}); u.push_back({mx,0,i});}
   }      
-  sort(u.begin(),u.end(),[](pair<double,int> pa,pair<double,int> pb){
-      return pa.first<pb.first||((pa.first==pb.first)&&(pa.second<pb.second));
+  sort(u.begin(),u.end(),[](event pa,event pb){
+      return pa.e<pb.e||((pa.e==pb.e)&&(pa.ty<pb.ty));
     });
   size_t Nr=ts.size(),Np=0,Nl=0;
   for(size_t i=0; i<u.size(); ++i){
-    p.k=AXIS(k); p.e=u[i].first;
+    p.k=AXIS(k); p.e=u[i].e;
     size_t p0=0,p1=0,p2=0;
-    while(i<u.size()&&p.e>=u[i].first&&u[i].second==0){++i; ++p0;}
-    while(i<u.size()&&p.e>=u[i].first&&u[i].second==1){++i; ++p1;}
-    while(i<u.size()&&p.e>=u[i].first&&u[i].second==2){++i; ++p2;}
+    while(i<u.size()&&p.e>=u[i].e&&u[i].ty==0){++i; ++p0;}
+    while(i<u.size()&&p.e>=u[i].e&&u[i].ty==1){++i; ++p1;}
+    while(i<u.size()&&p.e>=u[i].e&&u[i].ty==2){++i; ++p2;}
     Np=p1; Nr-=p1+p0;
     c=sah(p,b,Nl,Nr,Np);
-    if(c<c_mn){c_mn=c; p_mn=p;}
+    if(c.c<c_mn){c_mn=c.c; p_mn=p; s=c.s;}
     Nl+=p2+p1; Np=0;
   }
-  // }
   return p_mn;
 }
 kdtree::kdtree(obj*o,aabb b,unsigned d,vector<long>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
-  double C;
-  split=find_plane(o,d,t,b,C);
+  double C; unsigned s;
+  vector<event> u;
+  split=find_plane(o,d,t,b,C,u,s);
   if(d>=20||t.size()<=15) for(auto i:t) ts.push_back(i);
-  //if(C>1.5*t.size()) for(auto i:t) ts.push_back(i);
   else{
     aabb lb,rb; lb=rb=b;
     lb.t[split.k]=rb.f[split.k]=split.e;
     vector<long> lt,rt;
-    for(auto i:t){
-      double mn=o->min3(i,split.k);
-      double mx=o->max3(i,split.k);
-      if(mx>=split.e) rt.push_back(i);
-      if(mn<=split.e) lt.push_back(i);
+    // for(auto i:t){
+    //   double mn=o->min3(i,split.k);
+    //   double mx=o->max3(i,split.k);
+    //   if(mx>=split.e) rt.push_back(i);
+    //   if(mn<=split.e) lt.push_back(i);
+    // }
+    vector<long> ti;
+    for(auto i:t) ti.push_back(2);
+    for(auto e:u){
+      if(e.ty==0&&e.e<=split.e) ti[e.t]=0;
+      else if(e.ty==2&&e.e>=split.e) ti[e.t]=1;
+      else if(e.ty==1){
+        if(e.e<split.e||(e.e==split.e&&s==0)) ti[e.t]=0;
+        if(e.e>split.e||(e.e==split.e&&s==1)) ti[e.t]=1;
+      }
     }
+    for(size_t i=0; i<ti.size(); ++i){
+      if(ti[i]==0) lt.push_back(t[i]);
+      else if(ti[2]==1) rt.push_back(t[i]);
+      else{lt.push_back(t[i]); rt.push_back(t[i]);}
+    }      
     left =new kdtree(o,lb,d+1,lt);
     right=new kdtree(o,rb,d+1,rt);
   }
