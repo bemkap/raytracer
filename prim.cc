@@ -1,17 +1,17 @@
 #include<algorithm>
 #include"prim.hh"
 
-ray::ray(dvec3 o,dvec3 a):o(o){
+ray::ray(const dvec3&o,const dvec3&a):o(o){
   c2w=lookAt(o,o+a,dvec3(0,1,0));
 }
-ray::ray(dvec3 o):ray(o,-o){}
+ray::ray(const dvec3&o):ray(o,-o){}
 void ray::direct(double x,double y){
   dvec4 pw;
   pw=dvec4(x,y,-1.0,1.0)*c2w;
   d=normalize(dvec3(pw));
   inv.x=1/d.x; inv.y=1/d.y; inv.z=1/d.z;
 }
-void ray::direct(dvec3&v){d=v; inv.x=1/d.x; inv.y=1/d.y; inv.z=1/d.z;}
+void ray::direct(const dvec3&v){d=v; inv.x=1/d.x; inv.y=1/d.y; inv.z=1/d.z;}
 bool ray::hit(const aabb&b,double&in,double&out){
   double t1=(b.f[0]-o[0])*inv[0];
   double t2=(b.t[0]-o[0])*inv[0];

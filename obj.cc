@@ -1,10 +1,10 @@
 #include<cstdio>
 #include<fstream>
-#include<map>
+#include<iostream>
 #include"obj.hh"
 using namespace std;
 
-long face::operator[](int i){return a[i%9];}
+size_t face::operator[](int i){return a[i%9];}
 obj::obj(string&fn){
   string line; char str[128];
   ifstream in(fn); face f; dvec3 v;
@@ -12,13 +12,13 @@ obj::obj(string&fn){
   if(in.rdstate()&ifstream::failbit) st=BAD;
   else{
     while(getline(in,line)){
-      if(3==sscanf(line.c_str(),"f %ld %ld %ld",&f.v0,&f.v1,&f.v2)){
+      if(3==sscanf(line.c_str(),"f %d %d %d",&f.v0,&f.v1,&f.v2)){
         f.t0=f.t1=f.t2=f.n0=f.n1=f.n2=-1; f.m=cm;
         fs.push_back(f);
-      }else if(6==sscanf(line.c_str(),"f %ld//%ld %ld//%ld %ld//%ld",&f.v0,&f.n0, &f.v1,&f.n1, &f.v2,&f.n2)){
+      }else if(6==sscanf(line.c_str(),"f %d//%d %d//%d %d//%d",&f.v0,&f.n0, &f.v1,&f.n1, &f.v2,&f.n2)){
 	f.t0=f.t1=f.t2=-1; f.m=cm;
 	fs.push_back(f);
-      }else if(9==sscanf(line.c_str(),"f %ld/%ld/%ld %ld/%ld/%ld %ld/%ld/%ld",&f.v0,&f.t0,&f.n0, &f.v1,&f.t1,&f.n1, &f.v2,&f.t2,&f.n2)){
+      }else if(9==sscanf(line.c_str(),"f %d/%d/%d %d/%d/%d %d/%d/%d",&f.v0,&f.t0,&f.n0, &f.v1,&f.t1,&f.n1, &f.v2,&f.t2,&f.n2)){
 	f.m=cm;
 	fs.push_back(f);
       }else if(3==sscanf(line.c_str(),"vn %lf %lf %lf",&v.x,&v.y,&v.z))
@@ -38,28 +38,33 @@ obj::obj(string&fn){
   in.close();
 }
 obj::~obj(){for(auto m:mm) delete m.second;}
-double obj::get_vert(long f,VERT v,AXIS a){
+double obj::get_vert(size_t f,VERT v,AXIS a){
   return vs[fs[f][v]-1][a];
 }
-dvec3 obj::get_vert(long f,VERT v){
+dvec3 obj::get_vert(size_t f,VERT v){
   return vs[fs[f][v]-1];
 }
-double obj::get_norm(long f,NORM n,AXIS a){
+double obj::get_norm(size_t f,NORM n,AXIS a){
   return ns[fs[f][n]-1][a];
 }
-dvec3 obj::get_norm(long f,NORM n){
+dvec3 obj::get_norm(size_t f,NORM n){
   return ns[fs[f][n]-1];
 }
-double obj::min3(long f,AXIS a){
+double obj::min3(size_t f,AXIS a){
   return std::min(get_vert(f,V0,a),
 		  std::min(get_vert(f,V1,a),
 			   get_vert(f,V2,a)));
 }
-double obj::max3(long f,AXIS a){
+double obj::max3(size_t f,AXIS a){
   return std::max(get_vert(f,V0,a),
 		  std::max(get_vert(f,V1,a),
 			   get_vert(f,V2,a)));
 }
-triangle obj::get_tri(long f){
+triangle obj::get_tri(size_t f){
   return {get_vert(f,V0),get_vert(f,V1),get_vert(f,V2)};
+}
+void obj::stats(){
+  cout<<vs.size()<<" vertices"<<endl;
+  cout<<ns.size()<<" normals"<<endl;
+  cout<<fs.size()<<" faces"<<endl;
 }

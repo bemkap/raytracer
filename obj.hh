@@ -14,8 +14,8 @@ enum NORM {N0=2,N1=5,N2=8};
 
 class face {public:
   mat*m;
-  union { long a[9]; struct { long v0,t0,n0, v1,t1,n1, v2,t2,n2; };};
-  long operator[](int);
+  union { size_t a[9]; struct { size_t v0,t0,n0, v1,t1,n1, v2,t2,n2; };};
+  size_t operator[](int);
 };
 
 class obj {
@@ -26,11 +26,12 @@ public:
   vector<face> fs;
   map<string,mat*> mm;
   obj(string&); ~obj();
-  double get_vert(long,VERT,AXIS);
-  dvec3 get_vert(long,VERT);
-  double get_norm(long,NORM,AXIS);
-  dvec3 get_norm(long,NORM);
-  double min3(long,AXIS);
-  double max3(long,AXIS);
-  triangle get_tri(long);
+  double get_vert(size_t,VERT,AXIS);
+  dvec3 get_vert(size_t,VERT);
+  double get_norm(size_t,NORM,AXIS);
+  dvec3 get_norm(size_t,NORM);
+  double min3(size_t,AXIS);
+  double max3(size_t,AXIS);
+  triangle get_tri(size_t);
+  void stats();
 };

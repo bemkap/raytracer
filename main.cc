@@ -1,31 +1,37 @@
 #include<algorithm>
+#include<functional>
 #include<iostream>
 #include<fstream>
+#include<random>
 #include"kdtree.hh"
 #include"obj.hh"
 
-constexpr int WIDTH=500,HEIGHT=500;
-constexpr double r=double(WIDTH)/double(HEIGHT);
+constexpr int WIDTH=480,HEIGHT=640;
+constexpr double RATIO=double(WIDTH)/double(HEIGHT);
+constexpr double SAMPLES=1;
 
 void r2s(double i,double j,double&x,double&y,double fov){
   double t=tan(radians(fov*0.5));
-  x=(2*((i+0.5)/double(WIDTH))-1)*t*r;
-  y=(1-2*((j+0.5)/double(HEIGHT)))*t;
+  x=(2*(i/double(WIDTH))-1)*t*RATIO;
+  y=(1-2*(j/double(HEIGHT)))*t;
 }
 int main(int argc,char*argv[]){
   if(argc<3) return 1;
   string in(argv[1]);
   ofstream out(argv[2]);
-  out<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
   aabb b; dvec3 v;
   vector<light> ls;
-  ls.push_back({.p={9,5,-7},.c={0,0,0},.ia=.9,.id=.3,.is=.3});
+  default_random_engine gen;
+  uniform_real_distribution<double> dist(0.0,1.0);
+  auto rand=bind(dist,gen);
   ray r({5,5,-5});
-  // ray r({8,8,8});
+  ls.push_back({.p=r.o+dvec3(1,2,3),.c={0,0,0},.ia=.9,.id=.3,.is=.3});
+  //ray r({8,8,8});
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){
-    vector<long> ts(o->fs.size());
+    o->stats();
+    vector<size_t> ts(o->fs.size());
     for(size_t i=0; i<ts.size(); ++i) ts[i]=i;
     for(auto v:o->vs)
       for(int i=0; i<3; ++i){
@@ -33,13 +39,17 @@ int main(int argc,char*argv[]){
         b.t[i]=std::max(b.t[i],v[i]);
       }
     kdtree*t=new kdtree(o,b,0,ts);
+    out<<"P3"<<endl<<HEIGHT<<' '<<WIDTH<<endl<<255<<endl;
     for(int i=0; i<WIDTH; ++i){
       for(int j=0; j<HEIGHT; ++j){
         dvec3 I(0,0,0);
-        r2s(double(i),double(j),x,y,90.0);
-        r.direct(x,y);
-    	t->hit(o,r,I,v,ls,0); saturate(I); I*=255;
-    	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
+	for(int k=0; k<SAMPLES; ++k){
+	  r2s(double(i)+rand(),double(j)+rand(),x,y,90.0);
+	  r.direct(x,y);
+	  t->hit(o,r,I,v,ls,0);
+	}
+	I*=1.0/SAMPLES; saturate(I); I*=255;
+	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
       out<<endl;
     }
@@ -47,5 +57,6 @@ int main(int argc,char*argv[]){
   }
   delete o;
   out.close();
+  return 0;
   return 0;
 }
