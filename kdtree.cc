@@ -39,7 +39,7 @@ plane find_plane(obj*o,unsigned d,vector<size_t>&ts,aabb b,double&c_mn,vector<ev
     double mx=o->max3(ts[i],AXIS(k));
     if(mn==mx) u.push_back({mn,1,i});
     else{u.push_back({mn,2,i}); u.push_back({mx,0,i});}
-  }      
+  }
   sort(u.begin(),u.end(),[](event pa,event pb){
       return pa.e<pb.e||(pa.e==pb.e&&pa.ty<pb.ty);
     });
@@ -95,7 +95,8 @@ bool kdtree::leaf_p(){return !(left||right);}
 bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
   static stack<elem> stk;
   elem c; c.node=this;
-  dvec3 n,bc,u,Ip; bool h=false;
+  dvec3 n,bc,bc1,u;
+  long ih=-1;
   stk.push(c);
   while(!stk.empty()){
     c=stk.top(); stk.pop();
@@ -116,32 +117,33 @@ bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
       }
       for(auto i:c.node->ts){
 	triangle tr=o->get_tri(i);
-	if(r.hit(tr,u,bc)){
-	  if(!h||length(u-r.o)<length(v-r.o)){
-	    v=u;
-	    h=true;
-	    n=bc.x*o->get_norm(i,N0)+bc.y*o->get_norm(i,N1)+bc.z*o->get_norm(i,N2);
-	    Ip=pow(0.1,rtd)*o->fs[i].m->I(ls,u,n,r.o);
-	    break;
-	  }
+	if(r.hit(tr,u,bc1)&&(0>ih||length(u-r.o)<length(v-r.o))){
+	  v=u; ih=i; bc=bc1;
+	  break;
 	}
       }
     }
   }
-  if(h){
+  if(ih>-1){
     double sh=1;
-    if(rtd<MAX_DEPTH)
+    if(rtd<MAX_DEPTH){
+      //shadow
       for(auto l:ls){
     	dvec3 lv=l.p-v,J;
     	ray r1(v+lv*0.001); r1.direct(lv);
-    	if(hit(o,r1,J,u,ls,MAX_DEPTH)&&length(l.p-u)<length(lv)) sh=0.67;
+    	if(hit(o,r1,J,u,ls,MAX_DEPTH)&&length(l.p-u)<length(lv)) sh=0.33;
       }
-    I+=Ip*sh;
-    if(rtd<MAX_DEPTH){
-      dvec3 N=normalize(n),d=r.d-2.0*dot(r.d,N)*N;
+      //reflection
+      n=bc.x*o->get_norm(ih,N0)+bc.y*o->get_norm(ih,N1)+bc.z*o->get_norm(ih,N2);
+      dvec3 d=reflect(r.d,n);
       ray r2(v+d*0.001); r2.direct(d);
       hit(o,r2,I,v,ls,rtd+1);
+      //refraction
+      d=refract(r.d,n,1.0/.133);
+      r2=ray(v+d*0.001); r2.direct(d);
+      hit(o,r2,I,v,ls,MAX_DEPTH);
     }
+    I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,u,n,r.o,sh);
   }
-  return h;
+  return ih>-1;
 }

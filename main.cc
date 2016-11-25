@@ -30,7 +30,6 @@ int main(int argc,char*argv[]){
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){
-    o->stats();
     vector<size_t> ts(o->fs.size());
     for(size_t i=0; i<ts.size(); ++i) ts[i]=i;
     for(auto v:o->vs)
@@ -57,6 +56,5 @@ int main(int argc,char*argv[]){
   }
   delete o;
   out.close();
-  return 0;
   return 0;
 }
