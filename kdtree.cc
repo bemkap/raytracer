@@ -8,7 +8,7 @@
 using namespace std;
 using namespace glm;
 
-constexpr int MAX_DEPTH=2;
+constexpr int MAX_DEPTH=0;
 struct event {double e; unsigned ty; size_t t;};
 struct cost {double c; unsigned s;};
 
@@ -126,16 +126,16 @@ bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
   }
   if(ih>-1){
     double sh=1;
+    //shadow
+    for(auto l:ls){
+      dvec3 lv=l.p-v,J;
+      ray r1(v+lv*0.001); r1.direct(lv);
+      if(hit(o,r1,J,u,ls,MAX_DEPTH)&&length(l.p-u)<length(lv)) sh*=0.5;
+    }
+    if(o->has_ns) n=bc.x*o->get_norm(ih,N0)+bc.y*o->get_norm(ih,N1)+bc.z*o->get_norm(ih,N2);
+    if(o->has_vts) t=bc.x*o->get_text(ih,T0)+bc.y*o->get_text(ih,T1)+bc.z*o->get_text(ih,T2);
+    I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,t,v,n,r.o,sh);
     if(rtd<MAX_DEPTH){
-      //shadow
-      for(auto l:ls){
-      	dvec3 lv=l.p-v,J;
-      	ray r1(v+lv*0.001); r1.direct(lv);
-      	if(hit(o,r1,J,u,ls,MAX_DEPTH)&&length(l.p-u)<length(lv)) sh=0.33;
-      }
-      if(o->has_ns) n=bc.x*o->get_norm(ih,N0)+bc.y*o->get_norm(ih,N1)+bc.z*o->get_norm(ih,N2);
-      if(o->has_vts) t=bc.x*o->get_text(ih,T0)+bc.y*o->get_text(ih,T1)+bc.z*o->get_text(ih,T2);
-      I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,t,v,n,r.o,sh);
       //reflection
       dvec3 d=reflect(r.d,n);
       ray r2(v+d*0.001); r2.direct(d);
@@ -143,7 +143,7 @@ bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
       //refraction
       // d=refract(r.d,n,1.0/1.33);
       // r2=ray(v+d*0.001); r2.direct(d);
-      // hit(o,r2,I,v,ls,MAX_DEPTH);
+      // hit(o,r2,I,v,ls,rtd+1);
     }
   }
   return ih>-1;

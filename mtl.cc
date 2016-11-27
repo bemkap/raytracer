@@ -39,37 +39,23 @@ bool mtl::read(string&fn,map<string,mat*>&mm){
   return true;
 }
 dvec3 mat::I(vector<light>&ls,dvec3&t,dvec3&i,dvec3&n,dvec3&v,double sh){
-  // dvec3 I,N=normalize(n); double ia=0;
-  double ka_m=255,kd_m=255,ks_m=255;
-  if(ka_map.size()>0) ka_m=ka_map(t.x*ka_map.width(),t.y*ka_map.height());
-  if(kd_map.size()>0) kd_m=kd_map(t.x*kd_map.width(),t.y*kd_map.height());
-  if(ks_map.size()>0) ks_m=ks_map(t.x*ks_map.width(),t.y*ks_map.height());
-  // for(auto l:ls){
-  //   ia+=l.ia*l.id;
-  //   dvec3 L=normalize(l.p-i);
-  //   double LN=dot(L,N);
-  //   I+=0.9*kd*kd_m*std::max(0.0,LN)*l.id*sh;
-  //   if(illum>1){
-  //     double T=dot(N,normalize(L+(v-i)));
-  //     I+=ks*ks_m*(pow(std::max(0.0,T),ns)*l.is)*sh;
-  //   }
-  // }
-  // if(illum>2) I+=ks_m*0.2;
-  // return I+0.1*ka*ka_m*ia;
   dvec3 I(0,0,0);
-  for (auto l:ls){
-    dvec3 light_dir=l.p-i;
-    double distance=length(light_dir);
-    light_dir/=distance;
-    distance*=distance;
-    double NdotL=dot(n,light_dir);
-    double intensity=std::max(0.0,std::min(1.0,(NdotL)));
-    dvec3 Diffuse=intensity*l.c*l.id/distance;
-    dvec3 H=normalize(light_dir+(v-i));
-    double NdotH=dot(n,H);
-    intensity=pow(std::max(0.0,std::min(1.0,(NdotH))),ns);
-    dvec3 Specular=intensity*l.c*l.is/distance;
-    I+=Diffuse*kd*kd_m+Specular*ks*ks_m;
+  double ka_m=255,kd_m=255,ks_m=255;
+  if(ka_map.size()>0) ka_m=ka_map(t.x*ka_map.width(),(1-t.y)*ka_map.height());
+  if(kd_map.size()>0) kd_m=kd_map(t.x*kd_map.width(),(1-t.y)*kd_map.height());
+  if(ks_map.size()>0) ks_m=ks_map(t.x*ks_map.width(),(1-t.y)*ks_map.height());
+  for(auto l:ls){
+    dvec3 L=l.p-i;
+    double d=length(L);
+    L*=1.0/d; d*=d;
+    double NL=dot(n,L);
+    double intensity=std::max(0.0,std::min(1.0,(NL)));
+    double Diff=intensity/d;
+    dvec3 H=normalize(L+(v-i));
+    double NH=dot(n,H);
+    intensity=pow(std::max(0.0,std::min(1.0,(NH))),ns);
+    double Spec=intensity/d;
+    I+=l.ia*ka*ka_m+l.id*Diff*kd*kd_m+l.is*Spec*ks*ks_m;
   }
   return I;
 }

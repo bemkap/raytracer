@@ -20,8 +20,8 @@ int main(int argc,char*argv[]){
   default_random_engine gen;
   uniform_real_distribution<double> dist(0.0,1.0);
   auto rand=bind(dist,gen);
-  ray r({0.5,0.5,0.5});
-  ls.push_back({.p=r.o,.c={1,1,1},.ia=20,.id=20,.is=20});
+  ray r({0,0,-0.8});
+  ls.push_back({.p=r.o,.c={1,1,1},.ia=1,.id=1,.is=1});
   obj*o=new obj(in);
   double x,y,z=tan(radians(FOV*0.5));
   if(GOOD==o->st){
@@ -38,8 +38,8 @@ int main(int argc,char*argv[]){
       for(int i=0; i<WIDTH; ++i){
         dvec3 I(0,0,0);
   	for(int k=0; k<SAMPLES; ++k){
-	  x=(2*((double(i)+rand())/double(WIDTH))-1)*z*RATIO;
-	  y=(1-2*((double(j)+rand())/double(HEIGHT)))*z;
+          x=(2*((double(i)+rand())/double(WIDTH))-1)*z*RATIO;
+          y=(1-2*((double(j)+rand())/double(HEIGHT)))*z;
   	  r.direct(x,y);
   	  t->hit(o,r,I,v,ls,0);
   	}
