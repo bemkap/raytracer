@@ -5,8 +5,8 @@ using namespace std;
 
 typedef void(*handle)(obj*,const smatch&);
 void h_v(obj*o,const smatch&cm){o->vs.push_back(dvec3(stod(cm[1]),stod(cm[2]),stod(cm[3])));}
-void h_vt(obj*o,const smatch&cm){o->vts.push_back(dvec3(stod(cm[1]),stod(cm[2]),0));}
-void h_vn(obj*o,const smatch&cm){o->ns.push_back(dvec3(stod(cm[1]),stod(cm[2]),stod(cm[3])));}
+void h_vt(obj*o,const smatch&cm){o->has_vts=true; o->vts.push_back(dvec3(stod(cm[1]),stod(cm[2]),0));}
+void h_vn(obj*o,const smatch&cm){o->has_ns=true; o->ns.push_back(dvec3(stod(cm[1]),stod(cm[2]),stod(cm[3])));}
 void h_f3(obj*o,const smatch&cm){face f; f.m=o->cmtl;
   for(int i=1; i<10; ++i) f.a[i-1]=0==cm[i].length()?-1:stoi(cm[i]);
   o->fs.push_back(f);
@@ -22,7 +22,7 @@ void h_usemtl(obj*o,const smatch&cm){o->cmtl=o->mm.at(cm[1]);}
 void h_nop(obj*o,const smatch&cm){}
 
 size_t face::operator[](int i){return a[i%9];}
-obj::obj(string&fn){
+obj::obj(string&fn):has_vts(false),has_ns(false){
   string line;
   ifstream in(fn);
   string r_double="((?:\\+|-)?\\d+(?:\\.\\d+)?(?:[eE]-?\\d+)?)";

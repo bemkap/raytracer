@@ -50,7 +50,7 @@ bool ray::hit(triangle&tr,dvec3&i,dvec3&c){
   return false;
 }
 void saturate(dvec3&I){
-  I.x=std::min(1.0,std::max(0.0,I.x));
-  I.y=std::min(1.0,std::max(0.0,I.y));
-  I.z=std::min(1.0,std::max(0.0,I.z));
+  I.x=std::min(255.0,std::max(0.0,I.x));
+  I.y=std::min(255.0,std::max(0.0,I.y));
+  I.z=std::min(255.0,std::max(0.0,I.z));
 }

@@ -7,15 +7,10 @@
 #include"kdtree.hh"
 #include"obj.hh"
 
-constexpr int WIDTH=480,HEIGHT=640;
+constexpr int WIDTH=640,HEIGHT=480;
 constexpr double RATIO=double(WIDTH)/double(HEIGHT);
-constexpr double SAMPLES=1;
+constexpr double SAMPLES=1,FOV=90.0;
 
-void r2s(double i,double j,double&x,double&y,double fov){
-  double t=tan(radians(fov*0.5));
-  x=(2*(i/double(WIDTH))-1)*t*RATIO;
-  y=(1-2*(j/double(HEIGHT)))*t;
-}
 int main(int argc,char*argv[]){
   if(argc<3) return 1;
   string in(argv[1]);
@@ -25,10 +20,10 @@ int main(int argc,char*argv[]){
   default_random_engine gen;
   uniform_real_distribution<double> dist(0.0,1.0);
   auto rand=bind(dist,gen);
-  ray r({1,1,2});
-  ls.push_back({.p=r.o,.c={0,0,0},.ia=.9,.id=.9,.is=.9});
+  ray r({0.5,0.5,0.5});
+  ls.push_back({.p=r.o,.c={1,1,1},.ia=20,.id=20,.is=20});
   obj*o=new obj(in);
-  double x,y;
+  double x,y,z=tan(radians(FOV*0.5));
   if(GOOD==o->st){
     vector<size_t> ts(o->fs.size());
     for(size_t i=0; i<ts.size(); ++i) ts[i]=i;
@@ -38,22 +33,23 @@ int main(int argc,char*argv[]){
         b.t[i]=std::max(b.t[i],v[i]);
       }
     kdtree*t=new kdtree(o,b,0,ts);
-    out<<"P3"<<endl<<HEIGHT<<' '<<WIDTH<<endl<<255<<endl;
-    for(int i=0; i<WIDTH; ++i){
-      for(int j=0; j<HEIGHT; ++j){
+    out<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
+    for(int j=0; j<HEIGHT; ++j){
+      for(int i=0; i<WIDTH; ++i){
         dvec3 I(0,0,0);
   	for(int k=0; k<SAMPLES; ++k){
-  	  r2s(double(i)+rand(),double(j)+rand(),x,y,90.0);
+	  x=(2*((double(i)+rand())/double(WIDTH))-1)*z*RATIO;
+	  y=(1-2*((double(j)+rand())/double(HEIGHT)))*z;
   	  r.direct(x,y);
   	  t->hit(o,r,I,v,ls,0);
   	}
-  	I*=1.0/SAMPLES; //saturate(I); I*=255;
+  	I*=1.0/SAMPLES; saturate(I);
   	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
       out<<endl;
     }
     delete t;
-  }
+  }else cout<<"NOT GOOD"<<endl;
   delete o;
   out.close();
   return 0;

@@ -15,16 +15,16 @@ enum NORM {N0=2,N1=5,N2=8};
 
 class face {public:
   mat*m;
-  union { size_t a[9]; struct { size_t v0,t0,n0, v1,t1,n1, v2,t2,n2; };};
+  union {size_t a[9]; struct {size_t v0,t0,n0, v1,t1,n1, v2,t2,n2;};};
   size_t operator[](int);
 };
 
 class obj {public:
-  vector<dvec3> vts,ns;
+  vector<dvec3> vts,ns,vs;
+  bool has_vts,has_ns;
   map<string,mat*> mm;
   mat*cmtl;
   state st;
-  vector<dvec3> vs;
   vector<face> fs;
   obj(string&); ~obj();
   double get_vert(size_t,VERT,AXIS);
