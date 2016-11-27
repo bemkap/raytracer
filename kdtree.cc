@@ -95,7 +95,7 @@ bool kdtree::leaf_p(){return !(left||right);}
 bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
   static stack<elem> stk;
   elem c; c.node=this;
-  dvec3 n,bc,bc1,u;
+  dvec3 n,t,bc,bc1,u;
   long ih=-1;
   stk.push(c);
   while(!stk.empty()){
@@ -133,17 +133,18 @@ bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
     	ray r1(v+lv*0.001); r1.direct(lv);
     	if(hit(o,r1,J,u,ls,MAX_DEPTH)&&length(l.p-u)<length(lv)) sh=0.33;
       }
-      //reflection
       n=bc.x*o->get_norm(ih,N0)+bc.y*o->get_norm(ih,N1)+bc.z*o->get_norm(ih,N2);
+      t=bc.x*o->get_text(ih,T0)+bc.y*o->get_text(ih,T1)+bc.z*o->get_text(ih,T2);
+      I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,t,v,n,r.o,sh);
+      //reflection
       dvec3 d=reflect(r.d,n);
       ray r2(v+d*0.001); r2.direct(d);
       hit(o,r2,I,v,ls,rtd+1);
       //refraction
-      d=refract(r.d,n,1.0/.133);
-      r2=ray(v+d*0.001); r2.direct(d);
-      hit(o,r2,I,v,ls,MAX_DEPTH);
+      // d=refract(r.d,n,1.0/1.33);
+      // r2=ray(v+d*0.001); r2.direct(d);
+      // hit(o,r2,I,v,ls,MAX_DEPTH);
     }
-    I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,u,n,r.o,sh);
   }
   return ih>-1;
 }

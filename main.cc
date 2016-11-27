@@ -2,6 +2,7 @@
 #include<functional>
 #include<iostream>
 #include<fstream>
+#include<regex>
 #include<random>
 #include"kdtree.hh"
 #include"obj.hh"
@@ -24,9 +25,8 @@ int main(int argc,char*argv[]){
   default_random_engine gen;
   uniform_real_distribution<double> dist(0.0,1.0);
   auto rand=bind(dist,gen);
-  ray r({5,5,-5});
-  ls.push_back({.p=r.o+dvec3(1,2,3),.c={0,0,0},.ia=.9,.id=.3,.is=.3});
-  //ray r({8,8,8});
+  ray r({1,1,2});
+  ls.push_back({.p=r.o,.c={0,0,0},.ia=.9,.id=.9,.is=.9});
   obj*o=new obj(in);
   double x,y;
   if(GOOD==o->st){
@@ -42,13 +42,13 @@ int main(int argc,char*argv[]){
     for(int i=0; i<WIDTH; ++i){
       for(int j=0; j<HEIGHT; ++j){
         dvec3 I(0,0,0);
-	for(int k=0; k<SAMPLES; ++k){
-	  r2s(double(i)+rand(),double(j)+rand(),x,y,90.0);
-	  r.direct(x,y);
-	  t->hit(o,r,I,v,ls,0);
-	}
-	I*=1.0/SAMPLES; saturate(I); I*=255;
-	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
+  	for(int k=0; k<SAMPLES; ++k){
+  	  r2s(double(i)+rand(),double(j)+rand(),x,y,90.0);
+  	  r.direct(x,y);
+  	  t->hit(o,r,I,v,ls,0);
+  	}
+  	I*=1.0/SAMPLES; //saturate(I); I*=255;
+  	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
       }
       out<<endl;
     }

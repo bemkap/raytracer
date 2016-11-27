@@ -6,9 +6,11 @@
 #include<map>
 #include<string>
 #include<vector>
+#include"CImg.h"
 #include"prim.hh"
 using namespace glm;
 using namespace std;
+using namespace cimg_library;
 
 enum state {GOOD,BAD};
 
@@ -17,7 +19,8 @@ class mat {public:
   double ns,ni,d;//specular exponent,refraction,transparency
   double ir,it;//intensity reflected and transmitted direction
   int illum;//illumination model
-  dvec3 I(vector<light>&,dvec3&,dvec3&,dvec3&,double);
+  CImg<double> ka_map,kd_map,ks_map;
+  dvec3 I(vector<light>&,dvec3&,dvec3&,dvec3&,dvec3&,double);
 };
 
 namespace mtl {

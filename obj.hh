@@ -1,8 +1,9 @@
 #pragma once
 
 #include<glm/vec3.hpp>
-#include<vector>
+#include<regex>
 #include<string>
+#include<vector>
 #include"mtl.hh"
 #include"prim.hh"
 using namespace glm;
@@ -18,20 +19,21 @@ class face {public:
   size_t operator[](int);
 };
 
-class obj {
+class obj {public:
   vector<dvec3> vts,ns;
-public:
+  map<string,mat*> mm;
+  mat*cmtl;
   state st;
   vector<dvec3> vs;
   vector<face> fs;
-  map<string,mat*> mm;
   obj(string&); ~obj();
   double get_vert(size_t,VERT,AXIS);
   dvec3 get_vert(size_t,VERT);
   double get_norm(size_t,NORM,AXIS);
   dvec3 get_norm(size_t,NORM);
+  double get_text(size_t,TEXT,AXIS);
+  dvec3 get_text(size_t,TEXT);
   double min3(size_t,AXIS);
   double max3(size_t,AXIS);
   triangle get_tri(size_t);
-  void stats();
 };
