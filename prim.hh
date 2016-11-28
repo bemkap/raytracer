@@ -17,6 +17,7 @@ struct ray {
   dmat4x4 c2w;
   ray(const dvec3&,const dvec3&);
   ray(const dvec3&);
+  ray(){}
   void direct(double,double);
   void direct(const dvec3&);
   bool hit(const aabb&,double&,double&);

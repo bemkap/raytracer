@@ -125,14 +125,16 @@ bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
     }
   }
   if(ih>-1){
-    double sh=1;
     //shadow
+    double sh=1;
     for(auto l:ls){
       dvec3 lv=l.p-v,J;
       ray r1(v+lv*0.001); r1.direct(lv);
       if(hit(o,r1,J,u,ls,MAX_DEPTH)&&length(l.p-u)<length(lv)) sh*=0.5;
     }
+    //color
     if(o->has_ns) n=bc.x*o->get_norm(ih,N0)+bc.y*o->get_norm(ih,N1)+bc.z*o->get_norm(ih,N2);
+    else n=r.o-v;
     if(o->has_vts) t=bc.x*o->get_text(ih,T0)+bc.y*o->get_text(ih,T1)+bc.z*o->get_text(ih,T2);
     I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,t,v,n,r.o,sh);
     if(rtd<MAX_DEPTH){

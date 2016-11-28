@@ -26,7 +26,7 @@ class obj {public:
   mat*cmtl;
   state st;
   vector<face> fs;
-  obj(string&); ~obj();
+  obj(const string&); ~obj();
   double get_vert(size_t,VERT,AXIS);
   dvec3 get_vert(size_t,VERT);
   double get_norm(size_t,NORM,AXIS);

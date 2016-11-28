@@ -2,55 +2,60 @@
 #include<functional>
 #include<iostream>
 #include<fstream>
+#include<pthread.h>
 #include<regex>
 #include<random>
 #include"kdtree.hh"
 #include"obj.hh"
+#include"setup.hh"
 
-constexpr int WIDTH=640,HEIGHT=480;
+constexpr int WIDTH=640,HEIGHT=480,NTHREAD=1;
 constexpr double RATIO=double(WIDTH)/double(HEIGHT);
 constexpr double SAMPLES=1,FOV=90.0;
 
+struct thread_setup {setup*s; int start; ray r;};
+
+void*fill(void*p){
+  thread_setup*ts=(thread_setup*)p;
+  setup*s=ts->s;
+  double x,y,z=tan(radians(FOV*0.5));
+  for(int i=ts->start; i<HEIGHT*WIDTH*3; i+=NTHREAD*3){
+    dvec3 I(0,0,0),v;
+    for(int k=0; k<SAMPLES; ++k){
+      x=(2*((double(i/3%WIDTH))/double(WIDTH))-1)*z*RATIO;
+      y=(1-2*((double(i/3/WIDTH))/double(HEIGHT)))*z;
+      ts->r.direct(x,y);
+      s->t->hit(s->o,ts->r,I,v,s->ls,0);
+    }
+    I*=1.0/SAMPLES; saturate(I);
+    s->scr[i+0]=(unsigned char)(I.x);
+    s->scr[i+1]=(unsigned char)(I.y);
+    s->scr[i+2]=(unsigned char)(I.z);
+  }
+  pthread_exit(NULL);
+}
 int main(int argc,char*argv[]){
   if(argc<3) return 1;
   string in(argv[1]);
   ofstream out(argv[2]);
-  aabb b; dvec3 v;
-  vector<light> ls;
-  default_random_engine gen;
-  uniform_real_distribution<double> dist(0.0,1.0);
-  auto rand=bind(dist,gen);
-  ray r({0,0,-0.8});
-  ls.push_back({.p=r.o,.c={1,1,1},.ia=1,.id=1,.is=1});
-  obj*o=new obj(in);
-  double x,y,z=tan(radians(FOV*0.5));
-  if(GOOD==o->st){
-    vector<size_t> ts(o->fs.size());
-    for(size_t i=0; i<ts.size(); ++i) ts[i]=i;
-    for(auto v:o->vs)
-      for(int i=0; i<3; ++i){
-        b.f[i]=std::min(b.f[i],v[i]);
-        b.t[i]=std::max(b.t[i],v[i]);
-      }
-    kdtree*t=new kdtree(o,b,0,ts);
-    out<<"P3"<<endl<<WIDTH<<' '<<HEIGHT<<endl<<255<<endl;
-    for(int j=0; j<HEIGHT; ++j){
-      for(int i=0; i<WIDTH; ++i){
-        dvec3 I(0,0,0);
-  	for(int k=0; k<SAMPLES; ++k){
-          x=(2*((double(i)+rand())/double(WIDTH))-1)*z*RATIO;
-          y=(1-2*((double(j)+rand())/double(HEIGHT)))*z;
-  	  r.direct(x,y);
-  	  t->hit(o,r,I,v,ls,0);
-  	}
-  	I*=1.0/SAMPLES; saturate(I);
-  	out<<int(I.x)<<' '<<int(I.y)<<' '<<int(I.z)<<' ';
-      }
-      out<<endl;
-    }
-    delete t;
-  }else cout<<"NOT GOOD"<<endl;
-  delete o;
+  setup s(in,WIDTH,HEIGHT);
+  pthread_t threads[NTHREAD];
+  thread_setup thread_setups[NTHREAD];
+  pthread_attr_t attr;
+  void*status;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);
+  
+  for(int i=0; i<NTHREAD; ++i){
+    thread_setups[i]={&s,i*3,s.r};
+    pthread_create(&threads[i],&attr,fill,(void*)&thread_setups[i]);
+  }
+  pthread_attr_destroy(&attr);
+  for(int i=0; i<NTHREAD; ++i)
+    pthread_join(threads[i],&status);
+  
+  out<<"P6 "<<WIDTH<<' '<<HEIGHT<<" 255"<<endl;
+  for(size_t i=0; i<HEIGHT*WIDTH*3; ++i) out<<s.scr[i];
   out.close();
-  return 0;
+  pthread_exit(0);
 }

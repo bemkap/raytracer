@@ -22,7 +22,7 @@ void h_usemtl(obj*o,const smatch&cm){o->cmtl=o->mm.at(cm[1]);}
 void h_nop(obj*o,const smatch&cm){}
 
 size_t face::operator[](int i){return a[i%9];}
-obj::obj(string&fn):has_vts(false),has_ns(false){
+obj::obj(const string&fn):has_vts(false),has_ns(false){
   string line;
   ifstream in(fn);
   string r_double="((?:\\+|-)?\\d+(?:\\.\\d+)?(?:[eE]-?\\d+)?)";
