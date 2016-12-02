@@ -10,9 +10,10 @@ void h_ks(mat*m,const smatch&sm){m->ks=dvec3(stod(sm[1]),stod(sm[2]),stod(sm[3])
 void h_ni(mat*m,const smatch&sm){m->ni=stod(sm[1]);}
 void h_d(mat*m,const smatch&sm){m->d=stod(sm[1]);}
 void h_illum(mat*m,const smatch&sm){m->illum=stod(sm[1]);}
-void h_ka_map(mat*m,const smatch&sm){string s(sm[1]); m->ka_map=CImg<double>(s.c_str());}
-void h_kd_map(mat*m,const smatch&sm){string s(sm[1]); m->kd_map=CImg<double>(s.c_str());}
-void h_ks_map(mat*m,const smatch&sm){string s(sm[1]); m->ks_map=CImg<double>(s.c_str());}
+void h_ka_map(mat*m,const smatch&sm){m->ka_map=CImg<double>(string(sm[1]).c_str());}
+void h_kd_map(mat*m,const smatch&sm){m->kd_map=CImg<double>(string(sm[1]).c_str());}
+void h_ks_map(mat*m,const smatch&sm){m->ks_map=CImg<double>(string(sm[1]).c_str());}
+void h_bm_map(mat*m,const smatch&sm){m->bm_map=CImg<double>(string(sm[1]).c_str());}
 
 bool mtl::read(string&fn,map<string,mat*>&mm){
   string line;
@@ -23,15 +24,15 @@ bool mtl::read(string&fn,map<string,mat*>&mm){
     regex("Ns\\s+"+r_double), regex("Ka\\s+"+r_vec3), regex("Kd\\s+"+r_vec3),
     regex("Ks\\s+"+r_vec3), regex("Ni\\s+"+r_double), regex("d\\s+"+r_double),
     regex("illum\\s+"+r_double), regex("map_Ka\\s+(.+)"), regex("map_Kd\\s+(.+)"),
-    regex("map_Ks\\s+(.+)"), regex("newmtl\\s+(.+)")
+    regex("map_Ks\\s+(.+)"), regex("map_Bump\\s+(.+)"), regex("newmtl\\s+(.+)")
   };
-  handle handles[]={h_ns,h_ka,h_kd,h_ks,h_ni,h_d,h_illum,h_ka_map,h_kd_map,h_ks_map};
+  handle handles[]={h_ns,h_ka,h_kd,h_ks,h_ni,h_d,h_illum,h_ka_map,h_kd_map,h_ks_map,h_bm_map};
   smatch match;
   if(in.rdstate()&ifstream::failbit) return false;
   else{
     while(getline(in,line)){
-      int i; for(i=0; i<10&&!regex_match(line,match,r_obj[i]); ++i);
-      if(i==10){if(regex_match(line,match,r_obj[i])) mm[match[1]]=cm=new mat;}
+      int i; for(i=0; i<11&&!regex_match(line,match,r_obj[i]); ++i);
+      if(i==11){if(regex_match(line,match,r_obj[i])) mm[match[1]]=cm=new mat;}
       else handles[i](cm,match);
     }
   }
@@ -44,6 +45,11 @@ dvec3 mat::I(vector<light>&ls,dvec3&t,dvec3&i,dvec3&n,dvec3&v,double sh){
   if(ka_map.size()>0) ka_m=ka_map(t.x*ka_map.width(),(1-t.y)*ka_map.height());
   if(kd_map.size()>0) kd_m=kd_map(t.x*kd_map.width(),(1-t.y)*kd_map.height());
   if(ks_map.size()>0) ks_m=ks_map(t.x*ks_map.width(),(1-t.y)*ks_map.height());
+  if(bm_map.size()>0){
+    n.x+=1.0/255.0*bm_map(t.x*bm_map.width(),(1-t.y)*bm_map.height(),0);
+    n.y+=1.0/255.0*bm_map(t.x*bm_map.width(),(1-t.y)*bm_map.height(),1);
+    n.z+=1.0/255.0*bm_map(t.x*bm_map.width(),(1-t.y)*bm_map.height(),2);
+  }
   for(auto l:ls){
     dvec3 L=l.p-i;
     double d=length(L);
