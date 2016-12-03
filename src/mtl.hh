@@ -4,10 +4,9 @@
 #include<glm/ext.hpp>
 #include<glm/vec3.hpp>
 #include<map>
-#include<string>
 #include<vector>
 #include"CImg.h"
-#include"prim.hh"
+#include"common.hh"
 using namespace glm;
 using namespace std;
 using namespace cimg_library;

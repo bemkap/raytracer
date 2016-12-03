@@ -49,12 +49,9 @@ obj::obj(const string&fn):has_vts(false),has_ns(false){
   in.close();
 }
 obj::~obj(){for(auto m:mm) delete m.second;}
-double obj::get_vert(size_t f,VERT v,AXIS a){return vs[fs[f][v]-1][a];}
-dvec3 obj::get_vert(size_t f,VERT v){return vs[fs[f][v]-1];}
-double obj::get_norm(size_t f,NORM n,AXIS a){return ns[fs[f][n]-1][a];}
-dvec3 obj::get_norm(size_t f,NORM n){return ns[fs[f][n]-1];}
-double obj::get_text(size_t f,TEXT t,AXIS a){return vts[fs[f][t]-1][a];}
-dvec3 obj::get_text(size_t f,TEXT t){return vts[fs[f][t]-1];}
-double obj::min3(size_t f,AXIS a){return std::min(get_vert(f,V0,a),std::min(get_vert(f,V1,a),get_vert(f,V2,a)));}
-double obj::max3(size_t f,AXIS a){return std::max(get_vert(f,V0,a),std::max(get_vert(f,V1,a),get_vert(f,V2,a)));}
-triangle obj::get_tri(size_t f){return {get_vert(f,V0),get_vert(f,V1),get_vert(f,V2)};}
+double obj::min3(size_t f,AXIS a){
+  return std::min(vs[fs[f][V0]-1][a],std::min(vs[fs[f][V1]-1][a],vs[fs[f][V2]-1][a]));
+}
+double obj::max3(size_t f,AXIS a){
+  return std::max(vs[fs[f][V0]-1][a],std::max(vs[fs[f][V1]-1][a],vs[fs[f][V2]-1][a]));
+}

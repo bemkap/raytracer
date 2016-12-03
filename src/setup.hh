@@ -4,7 +4,7 @@
 #include<vector>
 #include"kdtree.hh"
 #include"obj.hh"
-#include"prim.hh"
+#include"ray.hh"
 
 class setup {public:
   unsigned char*scr;

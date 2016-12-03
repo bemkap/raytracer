@@ -1,10 +1,7 @@
-#include<algorithm>
 #include<glm/glm.hpp>
 #include<limits>
 #include<stack>
 #include"kdtree.hh"
-#include"obj.hh"
-#include"prim.hh"
 using namespace std;
 using namespace glm;
 
@@ -61,66 +58,61 @@ kdtree::kdtree(obj*o,aabb b,unsigned d,vector<size_t>&t):
   depth(d),bounds(b),left(nullptr),right(nullptr){
   double C; unsigned s;
   vector<event> u;
-  split=find_plane(o,d,t,b,C,u,s);
-  if(d>=20||t.size()<=15) for(auto i:t) ts.push_back(i);
+  if(d>=20||t.size()<=15) ts=t;
   else{
-    aabb lb,rb; lb=rb=b;
+    aabb lb=b,rb=b;
+    split=find_plane(o,d,t,b,C,u,s);    
     lb.t[split.k]=rb.f[split.k]=split.e;
-    vector<size_t> lt,rt,ti(t.size());
-    for(size_t i=0; i<ti.size(); ++i) ti[i]=2;
+    vector<size_t> lt,rt,ti(t.size(),2);
     for(auto e:u){
-      if(e.ty==0&&e.e<=split.e) ti[e.t]=0;
-      else if(e.ty==2&&e.e>=split.e) ti[e.t]=1;
-      else if(e.ty==1){
+      switch(e.ty){
+      case 0: if(e.e<=split.e) ti[e.t]=0; break; //end event
+      case 2: if(e.e>=split.e) ti[e.t]=1; break; //start event
+      case 1: //planar event
         if(e.e<split.e||(e.e==split.e&&s==0)) ti[e.t]=0;
         if(e.e>split.e||(e.e==split.e&&s==1)) ti[e.t]=1;
       }
     }
     for(size_t i=0; i<ti.size(); ++i){
-      switch(ti[i]){
-      case 0: lt.push_back(t[i]); break;
-      case 1: rt.push_back(t[i]); break;
-      default: lt.push_back(t[i]); rt.push_back(t[i]);
-      }
+      if(ti[i]!=0) rt.push_back(t[i]);
+      if(ti[i]!=1) lt.push_back(t[i]);
     }
-    left =new kdtree(o,lb,d+1,lt);
+    left=new kdtree(o,lb,d+1,lt);
     right=new kdtree(o,rb,d+1,rt);
   }
 }
 kdtree::~kdtree(){
-  if(nullptr!= left) delete  left;
+  if(nullptr!=left) delete left;
   if(nullptr!=right) delete right;
 }
 bool kdtree::leaf_p(){return !(left||right);}
 bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
   static stack<elem> stk;
-  elem c; c.node=this;
-  dvec3 n,t,bc,bc1,u;
+  static elem c; c.node=this;
+  static dvec3 n,t,bc,bc1,u;
   long ih=-1;
   stk.push(c);
   while(!stk.empty()){
     c=stk.top(); stk.pop();
     if(r.hit(c.node->bounds,c.in,c.out)){
-      while(!c.node->leaf_p()){
-        double s=c.node->split.e-r.o[c.node->split.k];
-    	double t=s/r.d[c.node->split.k];
-    	kdtree*near,*far;
-    	if(s>=0){near=c.node->left; far=c.node->right;}
-    	else{near=c.node->right; far=c.node->left;}
-    	if(t>=c.out||t<0) c.node=near;
-    	else if(t<=c.in) c.node=far;
-    	else{
-    	  stk.push({far,t,c.out});
-    	  c.node=near;
-    	  c.out=t;
-    	}
+    while(!c.node->leaf_p()){
+      double s=c.node->split.e-r.o[c.node->split.k];
+      double t=s/r.d[c.node->split.k];
+      kdtree*near,*far;
+      if(s>=0){near=c.node->left; far=c.node->right;}
+      else{near=c.node->right; far=c.node->left;}
+      if(t>=c.out||t<0) c.node=near;
+      else if(t<=c.in) c.node=far;
+      else{
+	stk.push({far,t,c.out});
+	c.node=near;
+	c.out=t;
       }
-      for(auto i:c.node->ts){
-	triangle tr=o->get_tri(i);
-	if(r.hit(tr,u,bc1)&&(0>ih||length(u-r.o)<length(v-r.o))){
-	  v=u; ih=i; bc=bc1;
-	  break;
-	}
+    }
+    for(auto i:c.node->ts)
+      if(r.hit(o,i,u,bc1)&&(0>ih||length(u-r.o)<length(v-r.o))){
+	v=u; ih=i; bc=bc1;
+	break;
       }
     }
   }
@@ -143,9 +135,9 @@ bool kdtree::hit(obj*o,ray&r,dvec3&I,dvec3&v,vector<light>&ls,int rtd){
       hit(o,r2,I,v,ls,rtd+1);
     }
     //color
-    if(o->has_ns) n=bc.x*o->get_norm(ih,N0)+bc.y*o->get_norm(ih,N1)+bc.z*o->get_norm(ih,N2);
+    if(o->has_ns) n=bc.x*o->ns[o->fs[ih][N0]-1]+bc.y*o->ns[o->fs[ih][N1]-1]+bc.z*o->ns[o->fs[ih][N2]-1];
     else n=r.o-v;
-    if(o->has_vts) t=bc.x*o->get_text(ih,T0)+bc.y*o->get_text(ih,T1)+bc.z*o->get_text(ih,T2);
+    if(o->has_vts) t=bc.x*o->vts[o->fs[ih][T0]-1]+bc.y*o->vts[o->fs[ih][T1]-1]+bc.z*o->vts[o->fs[ih][T2]-1];
     I+=pow(0.2,rtd)*o->fs[ih].m->I(ls,t,v,n,r.o,sh);
   }
   return ih>-1;

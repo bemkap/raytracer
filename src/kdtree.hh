@@ -1,7 +1,7 @@
 #pragma once
 
 #include<vector>
-#include"prim.hh"
+#include"ray.hh"
 #include"obj.hh"
 using namespace std;
 using namespace glm;

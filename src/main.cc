@@ -1,11 +1,10 @@
-#include<algorithm>
 #include<functional>
 #include<iostream>
 #include<pthread.h>
 #include<random>
 #include"kdtree.hh"
 #include"obj.hh"
-#include"prim.hh"
+#include"ray.hh"
 #include"setup.hh"
 
 constexpr int WIDTH=640,HEIGHT=480,NTHREAD=1;
